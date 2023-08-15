@@ -38,10 +38,6 @@ func InitBot() (*tele.Bot, error) {
 		return nil, err
 	}
 
-	b.Handle("/hello", func(c tele.Context) error {
-		return c.Send("Hello!")
-	})
-
 	b.Handle("/start", sendMenu)
 
 	// b.Start()

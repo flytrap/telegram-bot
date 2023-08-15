@@ -29,18 +29,25 @@ func main() {
 func newWebCmd(ctx context.Context) *cli.Command {
 	return &cli.Command{
 		Name:  "run",
-		Usage: "Run auth server",
+		Usage: "Run tg-bot server",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "conf",
 				Aliases: []string{"c"},
 				Usage:   "App configuration file(.json,.yaml,.toml)",
 			},
+			&cli.BoolFlag{
+				Name:     "update",
+				Aliases:  []string{"u"},
+				Usage:    "更新数据",
+				Required: false,
+			},
 		},
 		Action: func(c *cli.Context) error {
 			return app.Run(ctx,
 				app.SetConfigFile(c.String("conf")),
 				app.SetVersion(VERSION),
+				app.SetUpdateDb(c.Bool("update")),
 			)
 		},
 	}

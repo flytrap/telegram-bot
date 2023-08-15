@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch test function",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${file}",
+            "args": []
+        },
+        {
             "name": "Launch Package",
             "type": "go",
             "request": "launch",
@@ -13,7 +21,8 @@
             "args": [
                 "run",
                 "-c",
-                "${workspaceRoot}/config/config.json"
+                "${workspaceRoot}/config/config.json",
+                "-u"
             ]
         }
     ]

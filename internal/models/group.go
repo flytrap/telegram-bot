@@ -11,9 +11,9 @@ type Group struct {
 
 	Category uint   `json:"category" gorm:"comment:分类"`
 	Name     string `json:"name" gorm:"size:256;comment:名字"`
-	Tid      uint64 `json:"tid" gorm:"comment:TgId"`
+	Tid      int64  `json:"tid" gorm:"comment:TgId"`
 	Type     int8   `json:"type" gorm:"default:1;comment:类型，区分组|channel"`
-	Code     string `json:"code" gorm:"size:32;comment:唯一标识"`
+	Code     string `json:"code" gorm:"unique;size:64;comment:唯一标识"`
 	Number   uint32 `json:"number" gorm:"comment:人数"`
 	Desc     string `json:"desc" gorm:"type:text;comment:描述信息"`
 
