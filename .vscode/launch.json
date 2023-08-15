@@ -21,6 +21,18 @@
             "args": [
                 "run",
                 "-c",
+                "${workspaceRoot}/config/config.json"
+            ]
+        },
+        {
+            "name": "Update Group",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "args": [
+                "run",
+                "-c",
                 "${workspaceRoot}/config/config.json",
                 "-u"
             ]

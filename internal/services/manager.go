@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,23 +35,52 @@ func (s *BotManagerImp) Start() {
 }
 
 func (s *BotManagerImp) registRoute() {
-	s.Bot.Handle(tele.OnText, func(ctx tele.Context) error {
-		tag := ctx.Message().Text
-		data, err := s.Gs.SearchTag(tag, 10, 1)
-		if err != nil {
-			return err
-		}
-		items := []string{}
-		for i, item := range data {
-			items = append(items, item.ItemInfo(i+1))
-		}
-		ctx.Send(strings.Join(items, "\n"), tele.ModeMarkdown)
-		return nil
-	})
+
+	s.Bot.Handle(tele.OnText, s.SearchGroup)
 
 	s.Bot.Handle("/hello", func(c tele.Context) error {
 		return c.Send("Hello!")
 	})
+}
+
+func (s *BotManagerImp) SearchGroup(ctx tele.Context) error {
+	selector := &tele.ReplyMarkup{}
+	tag := ""
+	page := 1
+	cb := ctx.Callback()
+	if cb != nil {
+		info := cb.Data
+		tag = strings.Split(info, "|")[0]
+		n, err := strconv.Atoi(strings.Split(info, "|")[1])
+		if err != nil {
+			logrus.Warn(err)
+		} else {
+			page = n
+		}
+	} else {
+		tag = ctx.Message().Text
+	}
+	data, err := s.Gs.SearchTag(tag, 15, page)
+	if err != nil {
+		return err
+	}
+	items := []string{}
+	for i, item := range data {
+		items = append(items, item.ItemInfo(i+1))
+	}
+	var btnPrev tele.Btn
+	var btnNext tele.Btn
+	if page > 1 {
+		btnPrev = selector.Data("⬅ prev", "prev", tag, fmt.Sprint(page-1))
+		s.Bot.Handle(&btnPrev, s.SearchGroup)
+	}
+	if len(data) == 15 {
+		btnNext = selector.Data("next ➡", "next", tag, fmt.Sprint(page+1))
+	}
+	selector.Inline(selector.Row(btnPrev, btnNext))
+	s.Bot.Handle(&btnNext, s.SearchGroup)
+	ctx.EditOrSend(strings.Join(items, "\n"), tele.ModeMarkdown, selector)
+	return nil
 }
 
 func (s *BotManagerImp) UpdateGroupInfo() {

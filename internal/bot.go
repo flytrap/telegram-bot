@@ -40,7 +40,6 @@ func InitBot() (*tele.Bot, error) {
 
 	b.Handle("/start", sendMenu)
 
-	// b.Start()
 	return b, nil
 }
 

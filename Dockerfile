@@ -28,7 +28,7 @@ FROM alpine
 
 WORKDIR /app
 # 需要先本地编译，手动 GOOS=linux GOARCH=amd64 go build -o grade
-COPY config/config.json /app/config/config.json
+# COPY config/config.json /app/config/config.json
 COPY --from=builder /app/server /app/server
 
 # RUN echo -e http://mirrors.aliyun.com/alpine/v3.18/main/ > /etc/apk/repositories
