@@ -11,4 +11,5 @@ var InjectorSet = wire.NewSet(wire.Struct(new(Injector), "*"))
 type Injector struct {
 	Bot        *tele.Bot
 	BotManager services.BotManager
+	GrpcServer *GrpcServer
 }

@@ -7,8 +7,7 @@ import (
 )
 
 type TagRepository interface {
-	Get(id uint) (*models.Tag, error)
-	QueryGroup(name string, pageSize int, page int) (data *[]models.Tag, err error)
+	Get(name string) (*models.Tag, error)
 	GetMany(ids []uint) (data *[]models.Tag, err error)
 
 	Create(*models.Tag) error
@@ -23,15 +22,8 @@ type TagRepositoryImp struct {
 	Db *gorm.DB
 }
 
-func (s *TagRepositoryImp) Get(id uint) (data *models.Tag, err error) {
-	if err = s.Db.First(&data, "id = ?", id).Error; err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-func (s *TagRepositoryImp) QueryGroup(name string, pageSize int, page int) (data *[]models.Tag, err error) {
-	if err := s.Db.Where("name = ?", name+"%").Limit(pageSize).Offset((page - 1) * pageSize).Find(&data).Error; err != nil {
+func (s *TagRepositoryImp) Get(name string) (data *models.Tag, err error) {
+	if err = s.Db.First(&data, "name = ?", name).Error; err != nil {
 		return nil, err
 	}
 	return data, nil

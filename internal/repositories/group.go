@@ -9,7 +9,7 @@ import (
 )
 
 type GroupRepository interface {
-	Get(id uint) (*models.Group, error)
+	Get(code string) (*models.Group, error)
 	Query(name string, size int) (data []*models.Group, err error)
 	GetNeedUpdate(days int, pageSize int, page int) (data []*models.Group, err error)
 	QueryTag(tag string, pageSize int, page int) ([]*models.Group, error)
@@ -27,8 +27,8 @@ type GroupRepositoryImp struct {
 	Db *gorm.DB
 }
 
-func (s *GroupRepositoryImp) Get(id uint) (data *models.Group, err error) {
-	if err = s.Db.First(&data, "id = ?", id).Error; err != nil {
+func (s *GroupRepositoryImp) Get(code string) (data *models.Group, err error) {
+	if err = s.Db.First(&data, "code = ?", code).Error; err != nil {
 		return nil, err
 	}
 	return data, nil

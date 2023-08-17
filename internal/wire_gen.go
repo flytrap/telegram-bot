@@ -23,11 +23,16 @@ func BuildInjector() (*Injector, error) {
 		return nil, err
 	}
 	groupRepository := repositories.NewGroupRepository(db)
-	groupService := services.NewGroupService(groupRepository)
+	tagRepository := repositories.NewTagRepository(db)
+	tagService := services.NewTagService(tagRepository)
+	groupService := services.NewGroupService(groupRepository, tagService)
 	botManager := services.NewBotManager(groupService, bot)
+	tgBotServiceServer := services.NewTgBotService(groupService)
+	grpcServer := InitGrpcServer(tgBotServiceServer)
 	injector := &Injector{
 		Bot:        bot,
 		BotManager: botManager,
+		GrpcServer: grpcServer,
 	}
 	return injector, nil
 }

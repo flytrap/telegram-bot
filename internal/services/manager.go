@@ -96,6 +96,8 @@ func (s *BotManagerImp) UpdateGroupInfo() {
 			logrus.Warn(err)
 			if strings.Contains(err.Error(), "chat not found") {
 				s.Gs.Delete(item)
+			} else if strings.Contains(err.Error(), "retry after") {
+				time.Sleep(time.Second * 999)
 			}
 			continue
 		}
@@ -109,7 +111,7 @@ func (s *BotManagerImp) UpdateGroupInfo() {
 		if _, ok := res["description"]; ok {
 			desc = res["description"].(string)
 		}
-		s.Gs.Update(item, int(res["id"].(float64)), res["title"].(string), desc, n)
+		s.Gs.Update(item, int64(res["id"].(float64)), res["title"].(string), desc, n)
 	}
 	if len(res) == 100 {
 		s.UpdateGroupInfo()
@@ -117,7 +119,7 @@ func (s *BotManagerImp) UpdateGroupInfo() {
 }
 
 // 获取群人数
-func (s *BotManagerImp) GetChatMembers(code string) (int, error) {
+func (s *BotManagerImp) GetChatMembers(code string) (uint32, error) {
 	s.CheckSleep()
 	params := map[string]string{"chat_id": code}
 	res, err := s.Bot.Raw("getChatMemberCount", params)
@@ -130,7 +132,7 @@ func (s *BotManagerImp) GetChatMembers(code string) (int, error) {
 		return 0, err
 	}
 	if result["ok"].(bool) {
-		return int(result["result"].(float64)), nil
+		return uint32(result["result"].(float64)), nil
 	}
 	return 0, nil
 }

@@ -56,7 +56,8 @@ func Run(ctx context.Context, opts ...Option) error {
 	if o.UpdateDb {
 		injector.BotManager.UpdateGroupInfo()
 	} else {
-		injector.BotManager.Start()
+		go injector.BotManager.Start()
+		return injector.GrpcServer.Run()
 	}
 	return nil
 }

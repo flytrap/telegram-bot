@@ -15,7 +15,7 @@ func BuildInjector() (*Injector, error) {
 		// InitStore,
 		InitGormDB,
 		repositories.RepositorySet,
-		// InitGrpcServer,
+		InitGrpcServer,
 		// InitGateway,
 		services.ServiceSet,
 		// api.APISet,
