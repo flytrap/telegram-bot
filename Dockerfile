@@ -38,4 +38,4 @@ COPY --from=builder /app/server /app/server
 
 EXPOSE "$PORT"
 
-CMD ["./server", "run", "-c", "/app/config/config.json"]
+CMD ["./server", "index", "-c", "/app/config/config.json"]

@@ -13,8 +13,8 @@ import (
 )
 
 type BotManager interface {
-	Start()           // 启动机器人
-	UpdateGroupInfo() // 更新群组数据
+	Start()              // 启动机器人
+	UpdateGroupInfo(int) // 更新群组数据
 }
 
 func NewBotManager(gs GroupService, bot *tele.Bot) BotManager {
@@ -83,39 +83,40 @@ func (s *BotManagerImp) SearchGroup(ctx tele.Context) error {
 	return nil
 }
 
-func (s *BotManagerImp) UpdateGroupInfo() {
+func (s *BotManagerImp) UpdateGroupInfo(num int) {
 	i := 1
-	res, err := s.Gs.GetNeedUpdateCode(10, 100, i)
+	res, err := s.Gs.GetNeedUpdateCode(10, num, i)
 	if err != nil {
 		logrus.Warn(err)
 		return
 	}
 	for _, item := range res {
-		n, err := s.GetChatMembers(fmt.Sprintf("@%s", item))
-		if err != nil {
-			logrus.Warn(err)
-			if strings.Contains(err.Error(), "chat not found") {
-				s.Gs.Delete(item)
-			} else if strings.Contains(err.Error(), "retry after") {
-				time.Sleep(time.Second * 999)
-			}
-			continue
-		}
+		s.updateInfo(item)
+	}
+}
 
-		res, err := s.GetChatInfo(fmt.Sprintf("@%s", item))
-		if err != nil {
-			logrus.Warn(err)
-			continue
+func (s *BotManagerImp) updateInfo(code string) {
+	n, err := s.GetChatMembers(fmt.Sprintf("@%s", code))
+	if err != nil {
+		logrus.Warn(err)
+		if strings.Contains(err.Error(), "chat not found") {
+			s.Gs.Delete(code)
+		} else if strings.Contains(err.Error(), "retry after") {
+			time.Sleep(time.Second * 999)
 		}
-		desc := ""
-		if _, ok := res["description"]; ok {
-			desc = res["description"].(string)
-		}
-		s.Gs.Update(item, int64(res["id"].(float64)), res["title"].(string), desc, n)
+		return
 	}
-	if len(res) == 100 {
-		s.UpdateGroupInfo()
+
+	res, err := s.GetChatInfo(fmt.Sprintf("@%s", code))
+	if err != nil {
+		logrus.Warn(err)
+		return
 	}
+	desc := ""
+	if _, ok := res["description"]; ok {
+		desc = res["description"].(string)
+	}
+	s.Gs.Update(code, int64(res["id"].(float64)), res["title"].(string), desc, n)
 }
 
 // 获取群人数

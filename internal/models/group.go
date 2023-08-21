@@ -16,6 +16,7 @@ type Group struct {
 	Code     string `json:"code" gorm:"unique;size:64;comment:唯一标识"`
 	Number   uint32 `json:"number" gorm:"comment:人数"`
 	Desc     string `json:"desc" gorm:"type:text;comment:描述信息"`
+	Weight   int32  `json:"weight" gorm:"default:0;comment:权重"`
 
 	Tags []*Tag `json:"tags" gorm:"many2many:group_tag"`
 }

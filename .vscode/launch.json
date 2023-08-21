@@ -13,13 +13,13 @@
             "args": []
         },
         {
-            "name": "Launch Package",
+            "name": "index bot",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${fileDirname}",
+            "program": "${workspaceRoot}/cmd/main.go",
             "args": [
-                "run",
+                "index",
                 "-c",
                 "${workspaceRoot}/config/config.json"
             ]
@@ -34,7 +34,8 @@
                 "run",
                 "-c",
                 "${workspaceRoot}/config/config.json",
-                "-u"
+                "-u",
+                "100"
             ]
         }
     ]

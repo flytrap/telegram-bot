@@ -9,7 +9,7 @@ import (
 type options struct {
 	ConfigFile string
 	Version    string
-	UpdateDb   bool
+	UpdateDb   int
 }
 
 type Option func(*options)
@@ -26,7 +26,7 @@ func SetVersion(s string) Option {
 	}
 }
 
-func SetUpdateDb(s bool) Option {
+func SetUpdateDb(s int) Option {
 	return func(o *options) {
 		o.UpdateDb = s
 	}
@@ -40,7 +40,7 @@ func SetUpdateDb(s bool) Option {
 // 	return store, nil
 // }
 
-func Run(ctx context.Context, opts ...Option) error {
+func RunIndex(ctx context.Context, opts ...Option) error {
 	var o options
 	for _, opt := range opts {
 		opt(&o)
@@ -53,8 +53,8 @@ func Run(ctx context.Context, opts ...Option) error {
 		return err
 	}
 
-	if o.UpdateDb {
-		injector.BotManager.UpdateGroupInfo()
+	if o.UpdateDb > 0 {
+		injector.BotManager.UpdateGroupInfo(o.UpdateDb)
 	} else {
 		go injector.BotManager.Start()
 		return injector.GrpcServer.Run()

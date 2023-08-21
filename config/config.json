@@ -54,7 +54,7 @@
         "max_idle_conns": 50,
         "table_prefix": "tg_",
         "enable_auto_migrate": true,
-        "dsn": "flytrap:flytrap@tcp(192.168.0.102:3306)/telegram-bot?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true"
+        "dsn": "root:123456@tcp(localhost:3306)/telegram-bot?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true"
     },
     "print_config": true
 }
