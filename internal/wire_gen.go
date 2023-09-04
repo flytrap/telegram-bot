@@ -25,14 +25,22 @@ func BuildInjector() (*Injector, error) {
 	groupRepository := repositories.NewGroupRepository(db)
 	tagRepository := repositories.NewTagRepository(db)
 	tagService := services.NewTagService(tagRepository)
-	groupService := services.NewGroupService(groupRepository, tagService)
-	botManager := services.NewBotManager(groupService, bot)
+	categoryRepository := repositories.NewCategoryRepository(db)
+	categoryService := services.NewCategoryService(categoryRepository)
+	groupService := services.NewGroupService(groupRepository, tagService, categoryService)
+	coreClient, err := InitStore()
+	if err != nil {
+		return nil, err
+	}
+	indexMangerService := services.NewIndexMangerService(coreClient, groupService)
+	botManager := services.NewBotManager(groupService, indexMangerService, bot)
 	tgBotServiceServer := services.NewTgBotService(groupService)
 	grpcServer := InitGrpcServer(tgBotServiceServer)
 	injector := &Injector{
-		Bot:        bot,
-		BotManager: botManager,
-		GrpcServer: grpcServer,
+		Bot:          bot,
+		BotManager:   botManager,
+		IndexManager: indexMangerService,
+		GrpcServer:   grpcServer,
 	}
 	return injector, nil
 }

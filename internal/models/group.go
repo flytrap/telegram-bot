@@ -1,8 +1,7 @@
 package models
 
 import (
-	"fmt"
-
+	"github.com/flytrap/telegram-bot/pkg/human"
 	"gorm.io/gorm"
 )
 
@@ -10,6 +9,7 @@ type Group struct {
 	gorm.Model
 
 	Category uint   `json:"category" gorm:"comment:分类"`
+	Language string `json:"language" gorm:"size:32;comment:语言"`
 	Name     string `json:"name" gorm:"size:256;comment:名字"`
 	Tid      int64  `json:"tid" gorm:"comment:TgId"`
 	Type     int8   `json:"type" gorm:"default:1;comment:类型，区分组|channel"`
@@ -22,12 +22,5 @@ type Group struct {
 }
 
 func (s *Group) HumanSize() string {
-	if s.Number >= 1000000000 {
-		return fmt.Sprintf("%.2fb", float32(s.Number/1000000000))
-	} else if s.Number >= 1000000 {
-		return fmt.Sprintf("%.2fm", float32(s.Number/1000000))
-	} else if s.Number >= 1000 {
-		return fmt.Sprintf("%.2fK", float32(s.Number/1000))
-	}
-	return fmt.Sprintf("%d", s.Number)
+	return human.HumanSize(int64(s.Number))
 }

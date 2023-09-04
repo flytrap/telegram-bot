@@ -8,6 +8,7 @@ import (
 
 type CategoryRepository interface {
 	Get(id uint) (*models.Category, error)
+	GetAll(offset int, limit int) (data *[]models.Category, err error)
 	Query(name string, size int) (data *[]models.Category, err error)
 	GetMany(ids []uint) (data *[]models.Category, err error)
 
@@ -39,6 +40,13 @@ func (s *CategoryRepositoryImp) Query(name string, size int) (data *[]models.Cat
 
 func (s *CategoryRepositoryImp) GetMany(ids []uint) (data *[]models.Category, err error) {
 	if err := s.Db.Where("id in ?", ids).Find(&data).Error; err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (s *CategoryRepositoryImp) GetAll(offset int, limit int) (data *[]models.Category, err error) {
+	if err := s.Db.Select("id", "name").Offset(offset).Limit(limit).Find(&data).Error; err != nil {
 		return nil, err
 	}
 	return data, nil

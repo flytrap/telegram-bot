@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -8,45 +9,48 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/flytrap/telegram-bot/pkg/human"
 	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
 
 type BotManager interface {
-	Start()              // 启动机器人
-	UpdateGroupInfo(int) // 更新群组数据
+	Start()                // 启动机器人
+	UpdateGroupInfo(int64) // 更新群组数据
 }
 
-func NewBotManager(gs GroupService, bot *tele.Bot) BotManager {
-	return &BotManagerImp{Gs: gs, Bot: bot, Waterline: rand.Intn(15) + 5}
+func NewBotManager(gs GroupService, im IndexMangerService, bot *tele.Bot) BotManager {
+	return &BotManagerImp{Gs: gs, IndexManager: im, Bot: bot, Waterline: rand.Intn(15) + 5}
 }
 
 type BotManagerImp struct {
-	Gs        GroupService
-	Bot       *tele.Bot
-	Waterline int // 请求间隔时间
-	Tick      int // 请求计数
+	Gs           GroupService
+	IndexManager IndexMangerService
+	Bot          *tele.Bot
+	Waterline    int // 请求间隔时间
+	Tick         int // 请求计数
 }
 
 func (s *BotManagerImp) Start() {
-	s.registRoute()
+	s.registerRoute()
 	logrus.Info("启动bot")
 	s.Bot.Start()
 }
 
-func (s *BotManagerImp) registRoute() {
+func (s *BotManagerImp) registerRoute() {
 
-	s.Bot.Handle(tele.OnText, s.SearchGroup)
+	s.Bot.Handle(tele.OnText, s.SearchGroups)
 
 	s.Bot.Handle("/hello", func(c tele.Context) error {
 		return c.Send("Hello!")
 	})
 }
 
-func (s *BotManagerImp) SearchGroup(ctx tele.Context) error {
+func (s *BotManagerImp) SearchGroups(ctx tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	tag := ""
-	page := 1
+	page := int64(1)
 	cb := ctx.Callback()
 	if cb != nil {
 		info := cb.Data
@@ -55,37 +59,75 @@ func (s *BotManagerImp) SearchGroup(ctx tele.Context) error {
 		if err != nil {
 			logrus.Warn(err)
 		} else {
-			page = n
+			page = int64(n)
 		}
 	} else {
 		tag = ctx.Message().Text
 	}
-	data, err := s.Gs.SearchTag(tag, 15, page)
+	// lang := ctx.Sender().LanguageCode
+
+	items, hasNext, err := s.QueryItems(context.Background(), tag, page, 15)
 	if err != nil {
+		logrus.Warning(err)
 		return err
-	}
-	items := []string{}
-	for i, item := range data {
-		items = append(items, item.ItemInfo(i+1))
 	}
 	var btnPrev tele.Btn
 	var btnNext tele.Btn
 	if page > 1 {
 		btnPrev = selector.Data("⬅ prev", "prev", tag, fmt.Sprint(page-1))
-		s.Bot.Handle(&btnPrev, s.SearchGroup)
+		s.Bot.Handle(&btnPrev, s.SearchGroups)
 	}
-	if len(data) == 15 {
+	if hasNext {
 		btnNext = selector.Data("next ➡", "next", tag, fmt.Sprint(page+1))
 	}
 	selector.Inline(selector.Row(btnPrev, btnNext))
-	s.Bot.Handle(&btnNext, s.SearchGroup)
+	s.Bot.Handle(&btnNext, s.SearchGroups)
 	ctx.EditOrSend(strings.Join(items, "\n"), tele.ModeMarkdown, selector)
 	return nil
 }
 
-func (s *BotManagerImp) UpdateGroupInfo(num int) {
-	i := 1
-	res, err := s.Gs.GetNeedUpdateCode(10, num, i)
+func (s *BotManagerImp) QueryItems(ctx context.Context, text string, page int64, size int64) (items []string, hasNext bool, err error) {
+	if config.C.Bot.UseCache {
+		items, err = s.QueryCacheItems(ctx, "", text, "", page, 15)
+	} else {
+		items, err = s.QueryDbItems(text, page, 15)
+	}
+	if err != nil {
+		return nil, false, err
+	}
+	hasNext = int64(len(items)) == size
+	return items, hasNext, nil
+}
+
+func (s *BotManagerImp) QueryDbItems(text string, page int64, size int64) ([]string, error) {
+	data, err := s.Gs.SearchTag(text, page, 15)
+	if err != nil {
+		return nil, err
+	}
+	items := []string{}
+	for i, item := range data {
+		items = append(items, item.ItemInfo(i+1))
+	}
+	return items, nil
+}
+
+func (s *BotManagerImp) QueryCacheItems(ctx context.Context, name string, text string, category string, page int64, size int64) ([]string, error) {
+	data, err := s.IndexManager.Query(ctx, name, text, "", page, size)
+	logrus.Info(data)
+	if err != nil {
+		return nil, err
+	}
+	items := []string{}
+	for i, item := range data {
+		n, _ := strconv.ParseInt(item["number"], 10, 64)
+		items = append(items, human.TgGroupItemInfo(i, item["code"], item["type"], item["name"], n))
+	}
+	return items, nil
+}
+
+func (s *BotManagerImp) UpdateGroupInfo(num int64) {
+	i := int64(1)
+	res, err := s.Gs.GetNeedUpdateCode(10, i, num)
 	if err != nil {
 		logrus.Warn(err)
 		return

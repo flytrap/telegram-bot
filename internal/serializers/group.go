@@ -1,22 +1,20 @@
 package serializers
 
-import "fmt"
+import (
+	"github.com/flytrap/telegram-bot/pkg/human"
+)
 
-type GroupSerilizer struct {
+type GroupSerializer struct {
 	Code   string `json:"Code"`
 	Name   string `json:"name"`
-	Number string `json:"number"`
+	Number int64  `json:"number"`
 	Type   int8   `json:"type"`
 }
 
-func (s *GroupSerilizer) ItemInfo(i int) string {
-	tp := "👥"
-	if s.Type == 2 {
-		tp = "📢"
-	}
-	return fmt.Sprintf("%d、 %s [%s - %s](%s)", i, tp, s.Name, s.Number, s.Url())
+func (s *GroupSerializer) ItemInfo(i int) string {
+	return human.TgGroupItemInfo(i, s.Code, string(rune(s.Type)), s.Name, s.Number)
 }
 
-func (s *GroupSerilizer) Url() string {
-	return fmt.Sprintf("https://t.me/%s", s.Code)
+func (s *GroupSerializer) Url() string {
+	return human.TgGroupUrl(s.Code)
 }

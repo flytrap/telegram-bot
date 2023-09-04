@@ -32,23 +32,32 @@ func newWebCmd(ctx context.Context) *cli.Command {
 		Usage: "Run tg-bot index server",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "conf",
-				Aliases: []string{"c"},
-				Usage:   "App configuration file(.json,.yaml,.toml)",
+				Name:     "conf",
+				Aliases:  []string{"c"},
+				Required: true,
+				Usage:    "指定启动配置文件(.json,.yaml,.toml)",
 			},
 			&cli.IntFlag{
 				Name:        "update",
 				Aliases:     []string{"u"},
-				Usage:       "更新索引数据",
+				Usage:       "更新索引原始数据",
 				Required:    false,
 				DefaultText: "0",
+			},
+			&cli.StringFlag{
+				Name:        "index",
+				Aliases:     []string{"i"},
+				Usage:       "索引操作(load|delete)",
+				Required:    false,
+				DefaultText: "",
 			},
 		},
 		Action: func(c *cli.Context) error {
 			return app.RunIndex(ctx,
 				app.SetConfigFile(c.String("conf")),
 				app.SetVersion(VERSION),
-				app.SetUpdateDb(c.Int("update")),
+				app.SetUpdateDb(c.Int64("update")),
+				app.SetIndex(c.String("index")),
 			)
 		},
 	}

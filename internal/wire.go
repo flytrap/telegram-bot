@@ -12,7 +12,7 @@ import (
 func BuildInjector() (*Injector, error) {
 	wire.Build(
 		InitBot,
-		// InitStore,
+		InitStore,
 		InitGormDB,
 		repositories.RepositorySet,
 		InitGrpcServer,

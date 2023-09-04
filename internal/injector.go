@@ -9,7 +9,8 @@ import (
 var InjectorSet = wire.NewSet(wire.Struct(new(Injector), "*"))
 
 type Injector struct {
-	Bot        *tele.Bot
-	BotManager services.BotManager
-	GrpcServer *GrpcServer
+	Bot          *tele.Bot
+	BotManager   services.BotManager
+	IndexManager services.IndexMangerService
+	GrpcServer   *GrpcServer
 }

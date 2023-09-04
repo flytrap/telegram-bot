@@ -31,11 +31,25 @@
             "mode": "auto",
             "program": "${fileDirname}",
             "args": [
-                "run",
+                "index",
                 "-c",
                 "${workspaceRoot}/config/config.json",
                 "-u",
                 "100"
+            ]
+        },
+        {
+            "name": "init cache",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "args": [
+                "index",
+                "-c",
+                "${workspaceRoot}/config/config.json",
+                "-i",
+                "delete"
             ]
         }
     ]
