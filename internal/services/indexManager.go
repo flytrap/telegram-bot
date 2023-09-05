@@ -13,12 +13,13 @@ import (
 )
 
 type IndexMangerService interface {
+	IndexName(key string) string
 	LoadData(ctx context.Context, language string) error                          // 更新索引数据
 	InitIndex(ctx context.Context) error                                          // 初始化索引数据
 	DeleteAllIndex(ctx context.Context)                                           // 清除索引信息
 	AddItems(ctx context.Context, name string, data map[string]interface{}) error // 添加词条
 	RemoveItem(ctx context.Context, name string, key string) error                // 删除词条
-	Query(ctx context.Context, name string, text string, category string, page int64, size int64) ([]map[string]string, error)
+	Query(ctx context.Context, name string, text string, category string, page int64, size int64) ([]map[string]interface{}, error)
 }
 
 func NewIndexMangerService(client rueidis.CoreClient, gs GroupService) IndexMangerService {
@@ -32,13 +33,13 @@ type IndexMangerServiceImp struct {
 	indexes map[string]indexsearch.IndexSearch
 }
 
-func (s *IndexMangerServiceImp) indexName(key string) string {
+func (s *IndexMangerServiceImp) IndexName(key string) string {
 	return fmt.Sprintf("index:%s", key)
 }
 
 func (s *IndexMangerServiceImp) addIndex(ctx context.Context, name string, language string, prefix string) error {
 	index := indexsearch.NewRedisSearch(&s.Client, name, language, fmt.Sprintf("%s:%s", prefix, language))
-	s.indexes[index.GetName()] = index
+	s.indexes[name] = index
 	return index.Init(ctx)
 }
 
@@ -64,7 +65,7 @@ func (s *IndexMangerServiceImp) RemoveItem(ctx context.Context, name string, key
 	return index.DeleteItem(ctx, key)
 }
 
-func (s *IndexMangerServiceImp) Query(ctx context.Context, name string, text string, category string, page int64, size int64) ([]map[string]string, error) {
+func (s *IndexMangerServiceImp) Query(ctx context.Context, name string, text string, category string, page int64, size int64) ([]map[string]interface{}, error) {
 	index, ok := s.indexes[name]
 	if !ok {
 		return nil, errors.New("index not found")
@@ -82,7 +83,7 @@ func (s *IndexMangerServiceImp) RemoveIndex(ctx context.Context, name string) er
 
 // 加载数据
 func (s *IndexMangerServiceImp) LoadData(ctx context.Context, language string) error {
-	indexName := s.indexName(language)
+	indexName := s.IndexName(language)
 
 	var (
 		wg sync.WaitGroup
@@ -133,7 +134,7 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, language string) e
 func (s *IndexMangerServiceImp) InitIndex(ctx context.Context) error {
 	logrus.Debug("init index", config.C.Bot.Languages)
 	for _, lang := range config.C.Bot.Languages {
-		name := s.indexName(lang)
+		name := s.IndexName(lang)
 		err := s.addIndex(ctx, name, lang, config.C.Redis.KeyPrefix)
 		if err != nil {
 			logrus.Warning(err)
@@ -144,14 +145,14 @@ func (s *IndexMangerServiceImp) InitIndex(ctx context.Context) error {
 }
 
 func (s *IndexMangerServiceImp) DeleteIndex(ctx context.Context, lang string) error {
-	name := s.indexName(lang)
+	name := s.IndexName(lang)
 	index := indexsearch.NewRedisSearch(&s.Client, name, lang, fmt.Sprintf("%s:%s", config.C.Redis.KeyPrefix, lang))
 	return index.Delete(ctx)
 }
 
 func (s *IndexMangerServiceImp) DeleteAllIndex(ctx context.Context) {
 	for _, lang := range config.C.Bot.Languages {
-		name := s.indexName(lang)
+		name := s.IndexName(lang)
 		index := indexsearch.NewRedisSearch(&s.Client, name, lang, fmt.Sprintf("%s:%s", config.C.Redis.KeyPrefix, lang))
 		index.Delete(ctx)
 		logrus.Info("delete index :" + name)

@@ -12,7 +12,7 @@ type GroupSerializer struct {
 }
 
 func (s *GroupSerializer) ItemInfo(i int) string {
-	return human.TgGroupItemInfo(i, s.Code, string(rune(s.Type)), s.Name, s.Number)
+	return human.TgGroupItemInfo(i, s.Code, int(s.Type), s.Name, s.Number)
 }
 
 func (s *GroupSerializer) Url() string {

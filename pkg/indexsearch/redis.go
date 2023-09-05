@@ -2,6 +2,7 @@ package indexsearch
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/redis/rueidis"
@@ -106,7 +107,7 @@ func (s *IndexSearchOnRedis) Delete(ctx context.Context) error {
 }
 
 // 搜索
-func (s *IndexSearchOnRedis) Search(ctx context.Context, category string, text string, page int64, size int64) ([]map[string]string, error) {
+func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category string, page int64, size int64) ([]map[string]interface{}, error) {
 	q := text
 	if len(category) > 0 {
 		q = fmt.Sprintf("@category:%s %s", category, q)
@@ -115,9 +116,14 @@ func (s *IndexSearchOnRedis) Search(ctx context.Context, category string, text s
 	if err != nil {
 		return nil, err
 	}
-	results := []map[string]string{}
+	results := []map[string]interface{}{}
 	for _, item := range resp {
-		results = append(results, item.Doc)
+		res := map[string]interface{}{}
+		err = json.Unmarshal([]byte(item.Doc["$"]), &res)
+		if err != nil {
+			continue
+		}
+		results = append(results, res)
 	}
 
 	return results, nil

@@ -16,9 +16,9 @@ func HumanSize(num int64) string {
 	return fmt.Sprintf("%d", num)
 }
 
-func TgGroupItemInfo(index int, code string, tp string, name string, num int64) string {
+func TgGroupItemInfo(index int, code string, tp int, name string, num int64) string {
 	_tp := "👥"
-	if tp == "2" {
+	if tp == 2 {
 		_tp = "📢"
 	}
 	n := HumanSize(num)

@@ -64,7 +64,8 @@ func (s *BotManagerImp) SearchGroups(ctx tele.Context) error {
 	} else {
 		tag = ctx.Message().Text
 	}
-	// lang := ctx.Sender().LanguageCode
+	lang := ctx.Sender().LanguageCode
+	logrus.Info(lang)
 
 	items, hasNext, err := s.QueryItems(context.Background(), tag, page, 15)
 	if err != nil {
@@ -88,7 +89,7 @@ func (s *BotManagerImp) SearchGroups(ctx tele.Context) error {
 
 func (s *BotManagerImp) QueryItems(ctx context.Context, text string, page int64, size int64) (items []string, hasNext bool, err error) {
 	if config.C.Bot.UseCache {
-		items, err = s.QueryCacheItems(ctx, "", text, "", page, 15)
+		items, err = s.QueryCacheItems(ctx, "chinese", text, "", page, 15)
 	} else {
 		items, err = s.QueryDbItems(text, page, 15)
 	}
@@ -112,15 +113,14 @@ func (s *BotManagerImp) QueryDbItems(text string, page int64, size int64) ([]str
 }
 
 func (s *BotManagerImp) QueryCacheItems(ctx context.Context, name string, text string, category string, page int64, size int64) ([]string, error) {
-	data, err := s.IndexManager.Query(ctx, name, text, "", page, size)
-	logrus.Info(data)
+	index := s.IndexManager.IndexName(name)
+	data, err := s.IndexManager.Query(ctx, index, text, category, page, size)
 	if err != nil {
 		return nil, err
 	}
 	items := []string{}
 	for i, item := range data {
-		n, _ := strconv.ParseInt(item["number"], 10, 64)
-		items = append(items, human.TgGroupItemInfo(i, item["code"], item["type"], item["name"], n))
+		items = append(items, human.TgGroupItemInfo(int(page-1)*int(size)+i+1, item["code"].(string), int(item["type"].(float64)), item["name"].(string), int64(item["num"].(float64))))
 	}
 	return items, nil
 }
