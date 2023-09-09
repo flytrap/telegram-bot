@@ -21,20 +21,23 @@ type BotManager interface {
 	UpdateGroupInfo(int64) // 更新群组数据
 }
 
-func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot) BotManager {
-	return &BotManagerImp{dataService: dataService, IndexManager: im, Bot: bot, Waterline: rand.Intn(15) + 5}
+func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot, userService UserService) BotManager {
+	return &BotManagerImp{dataService: dataService, IndexManager: im, userService: userService, Bot: bot, Waterline: rand.Intn(15) + 5}
 }
 
 type BotManagerImp struct {
 	dataService  DataService
 	IndexManager IndexMangerService
+	userService  UserService
 	Bot          *tele.Bot
 	Waterline    int // 请求间隔时间
 	Tick         int // 请求计数
 }
 
 func (s *BotManagerImp) Start() {
-	s.Bot.Use(middleware.Logger())
+	s.Bot.Use(middleware.Logger(func(user map[string]interface{}) error {
+		return s.userService.CreateOrUpdate(user)
+	}))
 	s.registerRoute()
 	logrus.Info("启动bot")
 	s.Bot.Start()
@@ -44,8 +47,8 @@ func (s *BotManagerImp) registerRoute() {
 
 	s.Bot.Handle(tele.OnText, s.SearchGroups)
 
-	s.Bot.Handle("/hello", func(c tele.Context) error {
-		return c.Send("Hello!")
+	s.Bot.Handle("/lang", func(c tele.Context) error {
+		return c.Send("Lang!")
 	})
 }
 

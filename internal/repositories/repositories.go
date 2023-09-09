@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var RepositorySet = wire.NewSet(NewDataInfoRepository, NewDataTagRepository, NewCategoryRepository, NewUserRepository)
+var RepositorySet = wire.NewSet(NewDataInfoRepository, NewDataTagRepository, NewCategoryRepository, NewUserRepository, NewAdRepository)
 
 func AutoMigrate(db *gorm.DB) error {
 	if dbType := config.C.Gorm.DBType; strings.ToLower(dbType) == "mysql" {
@@ -21,5 +21,6 @@ func AutoMigrate(db *gorm.DB) error {
 		new(models.Category),
 		new(models.DataTag),
 		new(models.User),
+		new(models.Ad),
 	)
 }

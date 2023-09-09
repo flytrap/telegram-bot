@@ -18,7 +18,7 @@ type TgBotService struct {
 	pb.UnimplementedTgBotServiceServer
 }
 
-func (s *TgBotService) ImportGroup(stream pb.TgBotService_ImportGroupServer) error {
+func (s *TgBotService) ImportGroup(stream pb.TgBotService_ImportDataServer) error {
 	var (
 		wg    sync.WaitGroup
 		msgCh = make(chan error)

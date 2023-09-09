@@ -4,10 +4,10 @@ option go_package = "./v1;pb";
 package tg.v1;
 
 service TgBotService {
-    rpc ImportGroup(stream GroupItem) returns (stream ImportResponse){}  // 导入组数据
+    rpc ImportData(stream DataItem) returns (stream ImportResponse){}  // 导入组数据
 }
 
-message GroupItem {
+message DataItem {
     int64 tid = 1;
     int32 type = 2;
     int32 number = 3;

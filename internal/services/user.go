@@ -7,6 +7,7 @@ import (
 )
 
 type UserService interface {
+	List(q string, page int64, size int64) (data []map[string]interface{}, err error)
 	CreateOrUpdate(info map[string]interface{}) error
 }
 

@@ -15,7 +15,7 @@ func NewDataService(repo repositories.DataInfoRepository, tagService DataTagServ
 
 type DataService interface {
 	GetMany(category string, language string, page int64, size int64) ([]map[string]interface{}, error)
-	SearchTag(tag string, page int64, size int64) (data []*serializers.GroupSerializer, err error)
+	SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error)
 	GetNeedUpdateCode(days int, page int64, size int64) ([]string, error)
 	Update(code string, tid int64, name string, desc string, num uint32) error
 	Delete(code string) (err error)
@@ -57,11 +57,11 @@ func (s *DataInfoServiceImp) GetMany(category string, language string, page int6
 	return results, nil
 }
 
-func (s *DataInfoServiceImp) SearchTag(tag string, page int64, size int64) (data []*serializers.GroupSerializer, err error) {
+func (s *DataInfoServiceImp) SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error) {
 	res, err := s.repo.QueryTag(tag, (page-1)*size, size)
-	data = []*serializers.GroupSerializer{}
+	data = []*serializers.DataSerializer{}
 	for _, item := range res {
-		data = append(data, &serializers.GroupSerializer{Code: item.Code, Name: item.Name, Number: int64(item.Number)})
+		data = append(data, &serializers.DataSerializer{Code: item.Code, Name: item.Name, Number: int64(item.Number)})
 	}
 	if err != nil {
 		return nil, err
