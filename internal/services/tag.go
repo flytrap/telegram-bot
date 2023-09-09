@@ -5,22 +5,22 @@ import (
 	"github.com/flytrap/telegram-bot/internal/repositories"
 )
 
-type TagService interface {
-	GetOrCreate(name string) (*models.Tag, error)
+type DataTagService interface {
+	GetOrCreate(name string) (*models.DataTag, error)
 }
 
-func NewTagService(repo repositories.TagRepository) TagService {
-	return &TagServiceImp{repo: repo}
+func NewDataTagService(repo repositories.DataTagRepository) DataTagService {
+	return &DataTagServiceImp{repo: repo}
 }
 
-type TagServiceImp struct {
-	repo repositories.TagRepository
+type DataTagServiceImp struct {
+	repo repositories.DataTagRepository
 }
 
-func (s *TagServiceImp) GetOrCreate(name string) (*models.Tag, error) {
+func (s *DataTagServiceImp) GetOrCreate(name string) (*models.DataTag, error) {
 	t, err := s.repo.Get(name)
 	if t == nil {
-		t = &models.Tag{Name: name}
+		t = &models.DataTag{Name: name}
 		err = s.repo.Create(t)
 	}
 	return t, err

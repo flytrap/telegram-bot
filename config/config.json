@@ -27,7 +27,7 @@
       ["游戏", "影音", "AGC"],
       ["学术", "咨询", "NSFW"]
     ],
-    "languages": ["english", "chinese", "arabic"],
+    "languages": ["chinese"],
     "use_cache": true
   },
   "proxy": {

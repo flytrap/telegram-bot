@@ -6,42 +6,42 @@ import (
 	"gorm.io/gorm"
 )
 
-type TagRepository interface {
-	Get(name string) (*models.Tag, error)
-	GetMany(ids []uint) (data *[]models.Tag, err error)
+type DataTagRepository interface {
+	Get(name string) (*models.DataTag, error)
+	GetMany(ids []uint) (data *[]models.DataTag, err error)
 
-	Create(*models.Tag) error
+	Create(*models.DataTag) error
 	Delete(id uint) (err error)
 }
 
-func NewTagRepository(db *gorm.DB) TagRepository {
-	return &TagRepositoryImp{Db: db}
+func NewDataTagRepository(db *gorm.DB) DataTagRepository {
+	return &DataTagRepositoryImp{Db: db}
 }
 
-type TagRepositoryImp struct {
+type DataTagRepositoryImp struct {
 	Db *gorm.DB
 }
 
-func (s *TagRepositoryImp) Get(name string) (data *models.Tag, err error) {
+func (s *DataTagRepositoryImp) Get(name string) (data *models.DataTag, err error) {
 	if err = s.Db.First(&data, "name = ?", name).Error; err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
-func (s *TagRepositoryImp) GetMany(ids []uint) (data *[]models.Tag, err error) {
+func (s *DataTagRepositoryImp) GetMany(ids []uint) (data *[]models.DataTag, err error) {
 	if err := s.Db.Where("id in ?", ids).Find(&data).Error; err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
-func (s *TagRepositoryImp) Create(data *models.Tag) (err error) {
+func (s *DataTagRepositoryImp) Create(data *models.DataTag) (err error) {
 	result := s.Db.Create(data)
 	return errors.WithStack(result.Error)
 }
 
-func (s *TagRepositoryImp) Delete(id uint) (err error) {
-	result := s.Db.Where("id=?", id).Delete(models.Tag{})
+func (s *DataTagRepositoryImp) Delete(id uint) (err error) {
+	result := s.Db.Where("id=?", id).Delete(models.DataTag{})
 	return errors.WithStack(result.Error)
 }

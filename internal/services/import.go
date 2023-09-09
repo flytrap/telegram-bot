@@ -9,12 +9,12 @@ import (
 	"github.com/flytrap/telegram-bot/pb/v1"
 )
 
-func NewTgBotService(groupService GroupService) pb.TgBotServiceServer {
+func NewTgBotService(groupService DataService) pb.TgBotServiceServer {
 	return &TgBotService{groupService: groupService}
 }
 
 type TgBotService struct {
-	groupService GroupService
+	groupService DataService
 	pb.UnimplementedTgBotServiceServer
 }
 

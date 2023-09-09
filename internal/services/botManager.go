@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/flytrap/telegram-bot/internal/middleware"
 	"github.com/flytrap/telegram-bot/pkg/human"
 	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
@@ -20,12 +21,12 @@ type BotManager interface {
 	UpdateGroupInfo(int64) // 更新群组数据
 }
 
-func NewBotManager(gs GroupService, im IndexMangerService, bot *tele.Bot) BotManager {
-	return &BotManagerImp{Gs: gs, IndexManager: im, Bot: bot, Waterline: rand.Intn(15) + 5}
+func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot) BotManager {
+	return &BotManagerImp{dataService: dataService, IndexManager: im, Bot: bot, Waterline: rand.Intn(15) + 5}
 }
 
 type BotManagerImp struct {
-	Gs           GroupService
+	dataService  DataService
 	IndexManager IndexMangerService
 	Bot          *tele.Bot
 	Waterline    int // 请求间隔时间
@@ -33,6 +34,7 @@ type BotManagerImp struct {
 }
 
 func (s *BotManagerImp) Start() {
+	s.Bot.Use(middleware.Logger())
 	s.registerRoute()
 	logrus.Info("启动bot")
 	s.Bot.Start()
@@ -101,7 +103,7 @@ func (s *BotManagerImp) QueryItems(ctx context.Context, text string, page int64,
 }
 
 func (s *BotManagerImp) QueryDbItems(text string, page int64, size int64) ([]string, error) {
-	data, err := s.Gs.SearchTag(text, page, 15)
+	data, err := s.dataService.SearchTag(text, page, 15)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +129,7 @@ func (s *BotManagerImp) QueryCacheItems(ctx context.Context, name string, text s
 
 func (s *BotManagerImp) UpdateGroupInfo(num int64) {
 	i := int64(1)
-	res, err := s.Gs.GetNeedUpdateCode(10, i, num)
+	res, err := s.dataService.GetNeedUpdateCode(10, i, num)
 	if err != nil {
 		logrus.Warn(err)
 		return
@@ -142,7 +144,7 @@ func (s *BotManagerImp) updateInfo(code string) {
 	if err != nil {
 		logrus.Warn(err)
 		if strings.Contains(err.Error(), "chat not found") {
-			s.Gs.Delete(code)
+			s.dataService.Delete(code)
 		} else if strings.Contains(err.Error(), "retry after") {
 			time.Sleep(time.Second * 999)
 		}
@@ -158,7 +160,7 @@ func (s *BotManagerImp) updateInfo(code string) {
 	if _, ok := res["description"]; ok {
 		desc = res["description"].(string)
 	}
-	s.Gs.Update(code, int64(res["id"].(float64)), res["title"].(string), desc, n)
+	s.dataService.Update(code, int64(res["id"].(float64)), res["title"].(string), desc, n)
 }
 
 // 获取群人数

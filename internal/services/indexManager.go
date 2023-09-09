@@ -14,37 +14,37 @@ import (
 
 type IndexMangerService interface {
 	IndexName(key string) string
-	LoadData(ctx context.Context, language string) error                          // 更新索引数据
-	InitIndex(ctx context.Context) error                                          // 初始化索引数据
-	DeleteAllIndex(ctx context.Context)                                           // 清除索引信息
-	AddItems(ctx context.Context, name string, data map[string]interface{}) error // 添加词条
-	RemoveItem(ctx context.Context, name string, key string) error                // 删除词条
-	Query(ctx context.Context, name string, text string, category string, page int64, size int64) ([]map[string]interface{}, error)
+	LoadData(ctx context.Context, indexName string, language string) error             // 加载索引数据
+	InitIndex(ctx context.Context) error                                               // 初始化索引数据
+	DeleteAllIndex(ctx context.Context)                                                // 清除索引信息
+	AddItems(ctx context.Context, indexName string, data map[string]interface{}) error // 添加词条
+	RemoveItem(ctx context.Context, indexName string, key string) error                // 删除词条
+	Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) ([]map[string]interface{}, error)
 }
 
-func NewIndexMangerService(client rueidis.CoreClient, gs GroupService) IndexMangerService {
-	i := IndexMangerServiceImp{Client: client, gs: gs, indexes: map[string]indexsearch.IndexSearch{}}
+func NewIndexMangerService(client rueidis.CoreClient, dataService DataService) IndexMangerService {
+	i := IndexMangerServiceImp{Client: client, dataService: dataService, indexes: map[string]indexsearch.IndexSearch{}}
 	return &i
 }
 
 type IndexMangerServiceImp struct {
-	Client  rueidis.CoreClient
-	gs      GroupService
-	indexes map[string]indexsearch.IndexSearch
+	Client      rueidis.CoreClient
+	dataService DataService
+	indexes     map[string]indexsearch.IndexSearch
 }
 
 func (s *IndexMangerServiceImp) IndexName(key string) string {
 	return fmt.Sprintf("index:%s", key)
 }
 
-func (s *IndexMangerServiceImp) addIndex(ctx context.Context, name string, language string, prefix string) error {
-	index := indexsearch.NewRedisSearch(&s.Client, name, language, fmt.Sprintf("%s:%s", prefix, language))
-	s.indexes[name] = index
+func (s *IndexMangerServiceImp) addIndex(ctx context.Context, indexName string, language string, prefix string) error {
+	index := indexsearch.NewRedisSearch(&s.Client, indexName, language, fmt.Sprintf("%s:%s", prefix, language))
+	s.indexes[indexName] = index
 	return index.Init(ctx)
 }
 
-func (s *IndexMangerServiceImp) AddItems(ctx context.Context, name string, data map[string]interface{}) error {
-	index, ok := s.indexes[name]
+func (s *IndexMangerServiceImp) AddItems(ctx context.Context, indexName string, data map[string]interface{}) error {
+	index, ok := s.indexes[indexName]
 	if !ok {
 		return errors.New("index not found")
 	}
@@ -57,24 +57,24 @@ func (s *IndexMangerServiceImp) AddItems(ctx context.Context, name string, data 
 	return nil
 }
 
-func (s *IndexMangerServiceImp) RemoveItem(ctx context.Context, name string, key string) error {
-	index, ok := s.indexes[name]
+func (s *IndexMangerServiceImp) RemoveItem(ctx context.Context, indexName string, key string) error {
+	index, ok := s.indexes[indexName]
 	if !ok {
 		return errors.New("index not found")
 	}
 	return index.DeleteItem(ctx, key)
 }
 
-func (s *IndexMangerServiceImp) Query(ctx context.Context, name string, text string, category string, page int64, size int64) ([]map[string]interface{}, error) {
-	index, ok := s.indexes[name]
+func (s *IndexMangerServiceImp) Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) ([]map[string]interface{}, error) {
+	index, ok := s.indexes[indexName]
 	if !ok {
 		return nil, errors.New("index not found")
 	}
 	return index.Search(ctx, text, category, page, size)
 }
 
-func (s *IndexMangerServiceImp) RemoveIndex(ctx context.Context, name string) error {
-	index, ok := s.indexes[name]
+func (s *IndexMangerServiceImp) RemoveIndex(ctx context.Context, indexName string) error {
+	index, ok := s.indexes[indexName]
 	if !ok {
 		return errors.New("index not found")
 	}
@@ -82,9 +82,7 @@ func (s *IndexMangerServiceImp) RemoveIndex(ctx context.Context, name string) er
 }
 
 // 加载数据
-func (s *IndexMangerServiceImp) LoadData(ctx context.Context, language string) error {
-	indexName := s.IndexName(language)
-
+func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, language string) error {
 	var (
 		wg sync.WaitGroup
 		c  = make(chan map[string]interface{})
@@ -106,7 +104,7 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, language string) e
 		defer wg.Done()
 		n := int64(1)
 		for {
-			data, err := s.gs.GetMany("", language, n, 1000)
+			data, err := s.dataService.GetMany("", language, n, 1000)
 			if err != nil {
 				logrus.Warning(err)
 				break
@@ -152,9 +150,7 @@ func (s *IndexMangerServiceImp) DeleteIndex(ctx context.Context, lang string) er
 
 func (s *IndexMangerServiceImp) DeleteAllIndex(ctx context.Context) {
 	for _, lang := range config.C.Bot.Languages {
-		name := s.IndexName(lang)
-		index := indexsearch.NewRedisSearch(&s.Client, name, lang, fmt.Sprintf("%s:%s", config.C.Redis.KeyPrefix, lang))
-		index.Delete(ctx)
-		logrus.Info("delete index :" + name)
+		s.DeleteIndex(ctx, lang)
+		logrus.Info("delete index :" + lang)
 	}
 }

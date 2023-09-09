@@ -52,6 +52,7 @@ func InitStore() (rueidis.CoreClient, error) {
 }
 
 func RunIndex(ctx context.Context, opts ...Option) error {
+	initLogger()
 	var o options
 	for _, opt := range opts {
 		opt(&o)
@@ -64,24 +65,33 @@ func RunIndex(ctx context.Context, opts ...Option) error {
 		return err
 	}
 
-	if o.Index == "load" {
-		injector.IndexManager.InitIndex(ctx)
-		for _, lang := range config.C.Bot.Languages {
-			injector.IndexManager.LoadData(ctx, lang)
-		}
-		return nil
-	}
 	if o.Index == "delete" {
 		injector.IndexManager.DeleteAllIndex(ctx)
+		return nil
+	}
+	injector.IndexManager.InitIndex(ctx)
+	if o.Index == "load" {
+		if len(config.C.Bot.Languages) == 0 {
+			return nil
+		}
+		indexName := injector.IndexManager.IndexName(config.C.Bot.Languages[0]) // 只创建一个索引
+		injector.IndexManager.LoadData(ctx, indexName, "")
 		return nil
 	}
 
 	if o.UpdateDb > 0 {
 		injector.BotManager.UpdateGroupInfo(o.UpdateDb)
 	} else {
-		injector.IndexManager.InitIndex(ctx)
 		go injector.BotManager.Start()
 		return injector.GrpcServer.Run()
 	}
 	return nil
+}
+
+func initLogger() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceQuote:      true,                  //键值对加引号
+		TimestampFormat: "2006-01-02 15:04:05", //时间格式
+		FullTimestamp:   true,
+	})
 }

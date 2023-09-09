@@ -22,19 +22,19 @@ func BuildInjector() (*Injector, error) {
 	if err != nil {
 		return nil, err
 	}
-	groupRepository := repositories.NewGroupRepository(db)
-	tagRepository := repositories.NewTagRepository(db)
-	tagService := services.NewTagService(tagRepository)
+	dataInfoRepository := repositories.NewDataInfoRepository(db)
+	dataTagRepository := repositories.NewDataTagRepository(db)
+	dataTagService := services.NewDataTagService(dataTagRepository)
 	categoryRepository := repositories.NewCategoryRepository(db)
 	categoryService := services.NewCategoryService(categoryRepository)
-	groupService := services.NewGroupService(groupRepository, tagService, categoryService)
+	dataService := services.NewDataService(dataInfoRepository, dataTagService, categoryService)
 	coreClient, err := InitStore()
 	if err != nil {
 		return nil, err
 	}
-	indexMangerService := services.NewIndexMangerService(coreClient, groupService)
-	botManager := services.NewBotManager(groupService, indexMangerService, bot)
-	tgBotServiceServer := services.NewTgBotService(groupService)
+	indexMangerService := services.NewIndexMangerService(coreClient, dataService)
+	botManager := services.NewBotManager(dataService, indexMangerService, bot)
+	tgBotServiceServer := services.NewTgBotService(dataService)
 	grpcServer := InitGrpcServer(tgBotServiceServer)
 	injector := &Injector{
 		Bot:          bot,
