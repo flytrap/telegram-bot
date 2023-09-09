@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"time"
+
 	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -8,7 +10,7 @@ import (
 
 type AdRepository interface {
 	Get(id uint) (*models.Ad, error)
-	GetMany(q string, offset int64, limit int64) ([]*models.Ad, error)
+	GetMany(q string, start time.Time, end time.Time, offset int64, limit int64) ([]*models.Ad, error)
 
 	Create(*models.Ad) error
 	Update(id uint, info map[string]interface{}) (err error)
@@ -30,10 +32,17 @@ func (s *AdRepositoryImp) Get(id uint) (data *models.Ad, err error) {
 	return data, nil
 }
 
-func (s *AdRepositoryImp) GetMany(q string, offset int64, limit int64) (data []*models.Ad, err error) {
+func (s *AdRepositoryImp) GetMany(q string, start time.Time, end time.Time, offset int64, limit int64) (data []*models.Ad, err error) {
 	query := s.Db
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
+	}
+	if !start.IsZero() && !end.IsZero() {
+		query = query.Where("expire between ? and ?", start, end)
+	} else if !start.IsZero() {
+		query = query.Where("expire > ?", start)
+	} else if !end.IsZero() {
+		query = query.Where("expire < ?", start)
 	}
 
 	if err := query.Offset(int(offset)).Limit(int(limit)).Find(&data).Error; err != nil {
