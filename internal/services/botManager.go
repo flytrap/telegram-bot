@@ -21,7 +21,7 @@ type BotManager interface {
 	UpdateGroupInfo(int64) // 更新群组数据
 }
 
-func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot, userService UserService) BotManager {
+func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot, userService UserService, adService AdService) BotManager {
 	return &BotManagerImp{dataService: dataService, IndexManager: im, userService: userService, Bot: bot, Waterline: rand.Intn(15) + 5}
 }
 
@@ -29,6 +29,7 @@ type BotManagerImp struct {
 	dataService  DataService
 	IndexManager IndexMangerService
 	userService  UserService
+	adService    AdService
 	Bot          *tele.Bot
 	Waterline    int // 请求间隔时间
 	Tick         int // 请求计数
@@ -93,16 +94,35 @@ func (s *BotManagerImp) SearchGroups(ctx tele.Context) error {
 }
 
 func (s *BotManagerImp) QueryItems(ctx context.Context, text string, page int64, size int64) (items []string, hasNext bool, err error) {
+	if page >= config.C.Bot.MaxPage {
+		page = config.C.Bot.MaxPage // 阻止过多翻页
+	}
 	if config.C.Bot.UseCache {
-		items, err = s.QueryCacheItems(ctx, "chinese", text, "", page, 15)
+		items, err = s.QueryCacheItems(ctx, "chinese", text, "", page, config.C.Bot.PageSize)
 	} else {
-		items, err = s.QueryDbItems(text, page, 15)
+		items, err = s.QueryDbItems(text, page, config.C.Bot.PageSize)
 	}
 	if err != nil {
 		return nil, false, err
 	}
 	hasNext = int64(len(items)) == size
+	ad := s.loadAd(text)
+	if len(ad) > 0 {
+		items = append([]string{ad, ""}, items...) // 增加广告
+	}
 	return items, hasNext, nil
+}
+
+func (s *BotManagerImp) loadAd(keyword string) string {
+	item, err := s.adService.KeywordAd(keyword)
+	if err != nil {
+		return ""
+	}
+	showAd := ""
+	if item["is_show_ad"].(bool) {
+		showAd = "[广告] "
+	}
+	return fmt.Sprintf("%s[%s](%s)", showAd, item["name"], human.TgGroupUrl(item["code"].(string)))
 }
 
 func (s *BotManagerImp) QueryDbItems(text string, page int64, size int64) ([]string, error) {

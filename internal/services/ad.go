@@ -2,6 +2,8 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
+	"math/rand"
 	"time"
 
 	"github.com/flytrap/telegram-bot/internal/models"
@@ -10,6 +12,7 @@ import (
 )
 
 type AdService interface {
+	KeywordAd(keyword string) (map[string]interface{}, error)
 	List(q string, page int64, size int64) (data []map[string]interface{}, err error)
 	Update(id uint, info map[string]interface{}) error
 }
@@ -21,7 +24,9 @@ func NewAdService(repo repositories.AdRepository) AdService {
 type AdServiceImp struct {
 	repo            repositories.AdRepository
 	categoryService CategoryService
-	codeMap         map[string]map[string]interface{}
+	isLoad          bool
+	keywordMap      map[string]map[string]interface{}
+	globalList      []map[string]interface{}
 }
 
 func (s *AdServiceImp) List(q string, page int64, size int64) (data []map[string]interface{}, err error) {
@@ -50,13 +55,34 @@ func (s *AdServiceImp) Update(id uint, info map[string]interface{}) error {
 }
 
 func (s *AdServiceImp) Load() error {
+	if s.isLoad {
+		return nil
+	}
 	results, err := s.repo.GetMany("", time.Now(), time.Time{}, 0, 10000)
 	if err != nil {
 		return err
 	}
 	for _, item := range results {
 		info := item.ToMap()
-		s.codeMap[item.Code] = info
+		if len(item.Keyword) > 0 {
+			s.keywordMap[item.Keyword] = info
+		}
+		if item.Global != 0 {
+			s.globalList = append(s.globalList, info)
+		}
 	}
+	s.isLoad = true
 	return nil
+}
+
+func (s *AdServiceImp) KeywordAd(keyword string) (map[string]interface{}, error) {
+	item, ok := s.keywordMap[keyword]
+	if ok {
+		return item, nil
+	}
+	if len(s.globalList) == 0 {
+		return nil, errors.New("keyword not found")
+	}
+	i := rand.Intn(len(s.globalList))
+	return s.globalList[i], nil
 }

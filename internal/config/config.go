@@ -73,6 +73,8 @@ type Bot struct {
 	Menus     [][]string `json:"menus" mapstructure:"menus"`         // 菜单配置
 	UseCache  bool       `json:"use_cache" mapstructure:"use_cache"` // 使用缓存
 	Languages []string   `json:"languages" mapstructure:"languages"` // 启动的语言
+	PageSize  int64      `json:"page_size" mapstructure:"page_size"` // 搜索单页大小
+	MaxPage   int64      `json:"max_page" mapstructure:"max_page"`   // 最大页码
 }
 
 type Proxy struct {

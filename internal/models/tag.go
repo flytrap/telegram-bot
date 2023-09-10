@@ -2,7 +2,7 @@ package models
 
 import "gorm.io/gorm"
 
-type DataTag struct {
+type Tag struct {
 	gorm.Model
 
 	Name   string `json:"name" gorm:"unique;size:256;comment:名字"`

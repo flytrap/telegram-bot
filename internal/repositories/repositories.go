@@ -19,7 +19,7 @@ func AutoMigrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		new(models.DataInfo),
 		new(models.Category),
-		new(models.DataTag),
+		new(models.Tag),
 		new(models.User),
 		new(models.Ad),
 	)

@@ -97,16 +97,17 @@ func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string,
 	if s.Exists(code) {
 		return s.Update(code, tid, name, desc, num)
 	}
-	ts := []*models.DataTag{}
+	c, _ := s.categoryService.GetId(category)
+	ts := []models.Tag{}
 	for _, t := range tags {
 		tag, err := s.tagService.GetOrCreate(t)
 		if err != nil {
 			logrus.Warn(err)
 			continue
 		}
-		ts = append(ts, tag)
+		ts = append(ts, *tag)
 	}
-	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts}
+	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts, Category: c}
 	err := s.repo.Create(&data)
 	return err
 }

@@ -28,6 +28,8 @@
       ["学术", "咨询", "NSFW"]
     ],
     "languages": ["chinese"],
+    "page_size": 15,
+    "max_page": 20,
     "use_cache": true
   },
   "proxy": {
@@ -38,13 +40,13 @@
   "gorm": {
     "debug": true,
     "db_type": "mysql",
-    "db_name": "telegram-bot",
+    "db_name": "tg-bot",
     "max_lifetime": 7200,
     "max_open_conns": 150,
     "max_idle_conns": 50,
     "table_prefix": "tg_",
     "enable_auto_migrate": true,
-    "dsn": "flytrap:flytrap@tcp(192.168.0.102:3306)/telegram-bot?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true"
+    "dsn": "flytrap:flytrap@tcp(192.168.0.102:3306)/tg-bot?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true"
   },
   "print_config": true
 }

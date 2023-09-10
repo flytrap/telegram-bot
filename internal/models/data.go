@@ -18,7 +18,7 @@ type DataInfo struct {
 	Desc     string `json:"desc" gorm:"type:text;comment:描述信息"`
 	Weight   int32  `json:"weight" gorm:"default:0;comment:权重"`
 
-	Tags []*DataTag `json:"tags" gorm:"many2many:data_tag"`
+	Tags []Tag `json:"tags" gorm:"many2many:data_tag"`
 }
 
 func (s *DataInfo) HumanSize() string {

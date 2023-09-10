@@ -6,7 +6,7 @@ import (
 )
 
 type DataTagService interface {
-	GetOrCreate(name string) (*models.DataTag, error)
+	GetOrCreate(name string) (*models.Tag, error)
 }
 
 func NewDataTagService(repo repositories.DataTagRepository) DataTagService {
@@ -17,10 +17,10 @@ type DataTagServiceImp struct {
 	repo repositories.DataTagRepository
 }
 
-func (s *DataTagServiceImp) GetOrCreate(name string) (*models.DataTag, error) {
+func (s *DataTagServiceImp) GetOrCreate(name string) (*models.Tag, error) {
 	t, err := s.repo.Get(name)
 	if t == nil {
-		t = &models.DataTag{Name: name}
+		t = &models.Tag{Name: name}
 		err = s.repo.Create(t)
 	}
 	return t, err

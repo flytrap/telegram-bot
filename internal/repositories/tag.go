@@ -7,10 +7,10 @@ import (
 )
 
 type DataTagRepository interface {
-	Get(name string) (*models.DataTag, error)
-	GetMany(ids []uint) (data *[]models.DataTag, err error)
+	Get(name string) (*models.Tag, error)
+	GetMany(ids []uint) (data *[]models.Tag, err error)
 
-	Create(*models.DataTag) error
+	Create(*models.Tag) error
 	Delete(id uint) (err error)
 }
 
@@ -22,26 +22,26 @@ type DataTagRepositoryImp struct {
 	Db *gorm.DB
 }
 
-func (s *DataTagRepositoryImp) Get(name string) (data *models.DataTag, err error) {
+func (s *DataTagRepositoryImp) Get(name string) (data *models.Tag, err error) {
 	if err = s.Db.First(&data, "name = ?", name).Error; err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
-func (s *DataTagRepositoryImp) GetMany(ids []uint) (data *[]models.DataTag, err error) {
+func (s *DataTagRepositoryImp) GetMany(ids []uint) (data *[]models.Tag, err error) {
 	if err := s.Db.Where("id in ?", ids).Find(&data).Error; err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
-func (s *DataTagRepositoryImp) Create(data *models.DataTag) (err error) {
+func (s *DataTagRepositoryImp) Create(data *models.Tag) (err error) {
 	result := s.Db.Create(data)
 	return errors.WithStack(result.Error)
 }
 
 func (s *DataTagRepositoryImp) Delete(id uint) (err error) {
-	result := s.Db.Where("id=?", id).Delete(models.DataTag{})
+	result := s.Db.Where("id=?", id).Delete(models.Tag{})
 	return errors.WithStack(result.Error)
 }

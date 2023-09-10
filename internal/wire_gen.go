@@ -35,7 +35,9 @@ func BuildInjector() (*Injector, error) {
 	indexMangerService := services.NewIndexMangerService(coreClient, dataService)
 	userRepository := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepository)
-	botManager := services.NewBotManager(dataService, indexMangerService, bot, userService)
+	adRepository := repositories.NewAdRepository(db)
+	adService := services.NewAdService(adRepository)
+	botManager := services.NewBotManager(dataService, indexMangerService, bot, userService, adService)
 	tgBotServiceServer := services.NewTgBotService(dataService)
 	grpcServer := InitGrpcServer(tgBotServiceServer)
 	injector := &Injector{
