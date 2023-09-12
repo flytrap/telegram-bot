@@ -32,6 +32,9 @@ func (s *UserServiceImp) List(q string, page int64, size int64) (data []map[stri
 }
 
 func (s *UserServiceImp) Update(info map[string]interface{}) error {
+	if info["userId"] == nil {
+		return nil
+	}
 	userId := info["userId"].(int64)
 	t := &models.User{}
 	err := mapstructure.Decode(info, t)
