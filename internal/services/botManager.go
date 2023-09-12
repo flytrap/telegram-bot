@@ -35,7 +35,7 @@ type BotManagerImp struct {
 
 func (s *BotManagerImp) Start() {
 	s.Bot.Use(middleware.Logger(func(user map[string]interface{}) error {
-		return s.userService.CreateOrUpdate(user)
+		return s.userService.GetOrCreate(user)
 	}))
 	s.registerRoute()
 	logrus.Info("启动bot")

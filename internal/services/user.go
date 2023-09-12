@@ -9,6 +9,7 @@ import (
 type UserService interface {
 	List(q string, page int64, size int64) (data []map[string]interface{}, err error)
 	CreateOrUpdate(info map[string]interface{}) error
+	GetOrCreate(info map[string]interface{}) error
 }
 
 func NewUserService(repo repositories.UserRepository) UserService {
@@ -50,6 +51,20 @@ func (s *UserServiceImp) CreateOrUpdate(info map[string]interface{}) error {
 	t, _ := s.repo.Get(userId)
 	if t != nil {
 		return s.Update(info)
+	}
+	t = &models.User{}
+	err := mapstructure.Decode(info, t)
+	if err != nil {
+		return err
+	}
+	return s.repo.Create(t)
+}
+
+func (s *UserServiceImp) GetOrCreate(info map[string]interface{}) error {
+	userId := info["userID"].(int64)
+	t, _ := s.repo.Get(userId)
+	if t != nil {
+		return nil
 	}
 	t = &models.User{}
 	err := mapstructure.Decode(info, t)
