@@ -18,7 +18,8 @@ type AdService interface {
 }
 
 func NewAdService(repo repositories.AdRepository) AdService {
-	return &AdServiceImp{repo: repo}
+	res := AdServiceImp{repo: repo, keywordMap: map[string]map[string]interface{}{}, globalList: []map[string]interface{}{}}
+	return &res
 }
 
 type AdServiceImp struct {

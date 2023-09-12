@@ -22,7 +22,7 @@ type BotManager interface {
 }
 
 func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot, userService UserService, adService AdService) BotManager {
-	return &BotManagerImp{dataService: dataService, IndexManager: im, userService: userService, Bot: bot}
+	return &BotManagerImp{dataService: dataService, IndexManager: im, userService: userService, Bot: bot, adService: adService}
 }
 
 type BotManagerImp struct {

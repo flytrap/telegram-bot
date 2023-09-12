@@ -43,7 +43,7 @@ func (s *UserServiceImp) Update(info map[string]interface{}) error {
 }
 
 func (s *UserServiceImp) CreateOrUpdate(info map[string]interface{}) error {
-	userId := info["userId"].(int64)
+	userId := info["userID"].(int64)
 	t, err := s.repo.Get(userId)
 	if err != nil {
 		return err
