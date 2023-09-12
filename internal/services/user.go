@@ -44,15 +44,12 @@ func (s *UserServiceImp) Update(info map[string]interface{}) error {
 
 func (s *UserServiceImp) CreateOrUpdate(info map[string]interface{}) error {
 	userId := info["userID"].(int64)
-	t, err := s.repo.Get(userId)
-	if err != nil {
-		return err
-	}
+	t, _ := s.repo.Get(userId)
 	if t != nil {
 		return s.Update(info)
 	}
 	t = &models.User{}
-	err = mapstructure.Decode(info, t)
+	err := mapstructure.Decode(info, t)
 	if err != nil {
 		return err
 	}
