@@ -18,7 +18,7 @@ type TgBotService struct {
 	pb.UnimplementedTgBotServiceServer
 }
 
-func (s *TgBotService) ImportGroup(stream pb.TgBotService_ImportDataServer) error {
+func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error {
 	var (
 		wg    sync.WaitGroup
 		msgCh = make(chan error)
@@ -53,7 +53,7 @@ func (s *TgBotService) ImportGroup(stream pb.TgBotService_ImportDataServer) erro
 				log.Fatalf("recv error:%v", err)
 			}
 			fmt.Printf("Recved :%v \n", req.Name)
-			msgCh <- s.groupService.UpdateOrCreate(req.Code, req.Tid, req.Name, req.Desc, uint32(req.Number), req.Tags, req.Category)
+			msgCh <- s.groupService.UpdateOrCreate(req.Code, req.Tid, req.Name, req.Desc, uint32(req.Number), req.Tags, req.Category, req.Lang)
 		}
 		close(msgCh)
 	}()

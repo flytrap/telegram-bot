@@ -22,7 +22,7 @@ type BotManager interface {
 }
 
 func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot, userService UserService, adService AdService) BotManager {
-	return &BotManagerImp{dataService: dataService, IndexManager: im, userService: userService, Bot: bot, Waterline: rand.Intn(15) + 5}
+	return &BotManagerImp{dataService: dataService, IndexManager: im, userService: userService, Bot: bot}
 }
 
 type BotManagerImp struct {
@@ -31,8 +31,6 @@ type BotManagerImp struct {
 	userService  UserService
 	adService    AdService
 	Bot          *tele.Bot
-	Waterline    int // 请求间隔时间
-	Tick         int // 请求计数
 }
 
 func (s *BotManagerImp) Start() {
@@ -191,7 +189,6 @@ func (s *BotManagerImp) GetChatMembers(code string) (uint32, error) {
 	s.CheckSleep()
 	params := map[string]string{"chat_id": code}
 	res, err := s.Bot.Raw("getChatMemberCount", params)
-	s.Tick += 1
 	if err != nil {
 		return 0, err
 	}
@@ -222,10 +219,6 @@ func (s *BotManagerImp) GetChatInfo(code string) (map[string]interface{}, error)
 
 // 检查是否需要暂停一下
 func (s *BotManagerImp) CheckSleep() {
-	s.Tick += 1
-	if s.Tick >= s.Waterline {
-		s.Tick = 0
-		s.Waterline = rand.Intn(15) + 5
-		time.Sleep(time.Second * time.Duration(s.Waterline))
-	}
+	i := (rand.Intn(10) + 1) + rand.Intn(1000)/1000
+	time.Sleep(time.Second * time.Duration(i))
 }

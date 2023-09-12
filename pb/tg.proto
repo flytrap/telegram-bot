@@ -15,7 +15,8 @@ message DataItem {
     string name = 5;
     string desc = 6;
     string category = 7;
-    repeated string tags = 8;
+    string lang = 8;
+    repeated string tags = 9;
 }
 
 message ImportResponse {

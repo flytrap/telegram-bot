@@ -20,7 +20,7 @@ type DataService interface {
 	Update(code string, tid int64, name string, desc string, num uint32) error
 	Delete(code string) (err error)
 
-	UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string) error
+	UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error
 }
 
 type DataInfoServiceImp struct {
@@ -82,7 +82,13 @@ func (s *DataInfoServiceImp) GetNeedUpdateCode(days int, page int64, size int64)
 }
 
 func (s *DataInfoServiceImp) Update(code string, tid int64, name string, desc string, num uint32) error {
-	var params = map[string]interface{}{"tid": tid, "name": name, "number": num}
+	var params = map[string]interface{}{"name": name}
+	if tid != 0 {
+		params["tid"] = tid
+	}
+	if num != 0 {
+		params["number"] = 0
+	}
 	if len(desc) > 0 {
 		params["desc"] = desc
 	}
@@ -93,7 +99,7 @@ func (s *DataInfoServiceImp) Delete(code string) (err error) {
 	return s.repo.Delete(code)
 }
 
-func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string) error {
+func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error {
 	if s.Exists(code) {
 		return s.Update(code, tid, name, desc, num)
 	}
@@ -107,7 +113,7 @@ func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string,
 		}
 		ts = append(ts, *tag)
 	}
-	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts, Category: c}
+	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts, Category: c, Language: lang}
 	err := s.repo.Create(&data)
 	return err
 }
