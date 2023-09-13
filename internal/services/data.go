@@ -17,7 +17,7 @@ type DataService interface {
 	GetMany(category string, language string, page int64, size int64) ([]map[string]interface{}, error)
 	SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error)
 	GetNeedUpdateCode(days int, page int64, size int64) ([]string, error)
-	Update(code string, tid int64, name string, desc string, num uint32) error
+	Update(code string, tid int64, name string, desc string, num uint32, weight int) error
 	Delete(code string) (err error)
 
 	UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error
@@ -81,13 +81,16 @@ func (s *DataInfoServiceImp) GetNeedUpdateCode(days int, page int64, size int64)
 	return results, nil
 }
 
-func (s *DataInfoServiceImp) Update(code string, tid int64, name string, desc string, num uint32) error {
+func (s *DataInfoServiceImp) Update(code string, tid int64, name string, desc string, num uint32, weight int) error {
 	var params = map[string]interface{}{"name": name}
 	if tid != 0 {
 		params["tid"] = tid
 	}
 	if num != 0 {
 		params["number"] = num
+	}
+	if weight > 0 {
+		params["weight"] = weight
 	}
 	if len(desc) > 0 {
 		params["desc"] = desc
@@ -101,7 +104,7 @@ func (s *DataInfoServiceImp) Delete(code string) (err error) {
 
 func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error {
 	if s.Exists(code) {
-		return s.Update(code, tid, name, desc, num)
+		return s.Update(code, tid, name, desc, num, -1)
 	}
 	c, _ := s.categoryService.GetId(category)
 	ts := []models.Tag{}
