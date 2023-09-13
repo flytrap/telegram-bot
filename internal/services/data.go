@@ -87,7 +87,7 @@ func (s *DataInfoServiceImp) Update(code string, tid int64, name string, desc st
 		params["tid"] = tid
 	}
 	if num != 0 {
-		params["number"] = 0
+		params["number"] = num
 	}
 	if len(desc) > 0 {
 		params["desc"] = desc

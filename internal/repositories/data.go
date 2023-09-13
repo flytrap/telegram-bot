@@ -54,7 +54,7 @@ func (s *DataInfoRepositoryImp) QueryTag(tag string, offset int64, limit int64) 
 }
 
 func (s *DataInfoRepositoryImp) GetNeedUpdate(days int, offset int64, limit int64) (data []*models.DataInfo, err error) {
-	if err := s.Db.Select("code").Where("tid is null or updated_at < ?", time.Now().AddDate(0, 0, -days)).Find(&data).Error; err != nil {
+	if err := s.Db.Select("code").Where("tid = 0 or updated_at < ?", time.Now().AddDate(0, 0, -days)).Find(&data).Error; err != nil {
 		return nil, err
 	}
 	return data, nil
