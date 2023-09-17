@@ -2,15 +2,14 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"log"
 	"sync"
 
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pb/v1"
 	"github.com/jinzhu/copier"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 )
 
 func NewTgBotApi(dataService services.DataService) pb.TgBotServiceServer {
@@ -39,7 +38,7 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 			}
 			err := stream.Send(&pb.RetInfo{Status: v == nil, Msg: msg})
 			if err != nil {
-				fmt.Println("Send error:", err)
+				logrus.Println("Send error:", err)
 				continue
 			}
 		}
@@ -54,9 +53,9 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 				break
 			}
 			if err != nil {
-				log.Fatalf("recv error:%v", err)
+				logrus.Fatalf("recv error:%v", err)
 			}
-			fmt.Printf("Recved :%v \n", req.Name)
+			logrus.Printf("Recved :%v \n", req.Name)
 			msgCh <- s.dataService.UpdateOrCreate(req.Code, req.Tid, req.Name, req.Desc, uint32(req.Number), req.Tags, req.Category, req.Language)
 		}
 		close(msgCh)
@@ -87,6 +86,7 @@ func (s *TgBotService) UpdateData(ctx context.Context, req *pb.DataItem) (*pb.Re
 	}
 	return &pb.RetInfo{Status: true}, nil
 }
+
 func (s *TgBotService) DeleteData(ctx context.Context, req *pb.DeleteCodes) (*pb.RetInfo, error) {
 	err := s.dataService.Delete(req.Codes)
 	if err != nil {
