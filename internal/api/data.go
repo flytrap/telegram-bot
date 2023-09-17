@@ -80,7 +80,7 @@ func (s *TgBotService) SearchData(ctx context.Context, req *pb.DataSearchRequest
 }
 
 func (s *TgBotService) UpdateData(ctx context.Context, req *pb.DataItem) (*pb.RetInfo, error) {
-	err := s.dataService.Update(req.Code, req.Tid, req.Name, req.Desc, req.Number, -1)
+	err := s.dataService.Update(req.Code, req.Tid, req.Name, req.Desc, req.Number, -1, req.Language, uint(req.CategoryId))
 	if err != nil {
 		return &pb.RetInfo{Status: false, Msg: err.Error()}, err
 	}

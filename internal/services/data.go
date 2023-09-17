@@ -18,7 +18,7 @@ type DataService interface {
 	List(q string, category string, language string, page int64, size int64, ordering string) (int64, []map[string]interface{}, error)
 	SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error)
 	GetNeedUpdateCode(days int, page int64, size int64) ([]string, error)
-	Update(code string, tid int64, name string, desc string, num uint32, weight int) error
+	Update(code string, tid int64, name string, desc string, num uint32, weight int, lang string, category uint) error
 	Delete(codes []string) (err error)
 
 	UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error
@@ -84,7 +84,7 @@ func (s *DataInfoServiceImp) GetNeedUpdateCode(days int, page int64, size int64)
 	return results, nil
 }
 
-func (s *DataInfoServiceImp) Update(code string, tid int64, name string, desc string, num uint32, weight int) error {
+func (s *DataInfoServiceImp) Update(code string, tid int64, name string, desc string, num uint32, weight int, lang string, category uint) error {
 	var params = map[string]interface{}{"name": name}
 	if tid != 0 {
 		params["tid"] = tid
@@ -95,8 +95,14 @@ func (s *DataInfoServiceImp) Update(code string, tid int64, name string, desc st
 	if weight > 0 {
 		params["weight"] = weight
 	}
+	if category > 0 {
+		params["category"] = category
+	}
 	if len(desc) > 0 {
 		params["desc"] = desc
+	}
+	if len(lang) > 0 {
+		params["language"] = lang
 	}
 	return s.repo.Update(code, params)
 }
@@ -106,12 +112,13 @@ func (s *DataInfoServiceImp) Delete(codes []string) (err error) {
 }
 
 func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error {
-	if s.Exists(code) {
-		return s.Update(code, tid, name, desc, num, -1)
-	}
+	cid := uint(0)
 	c, err := s.categoryService.GetOrCreate(category, 0)
-	if err != nil {
-		return err
+	if err == nil {
+		cid = c.ID
+	}
+	if s.Exists(code) {
+		return s.Update(code, tid, name, desc, num, 0, lang, cid)
 	}
 	ts := []models.Tag{}
 	for _, t := range tags {
@@ -122,7 +129,7 @@ func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string,
 		}
 		ts = append(ts, *tag)
 	}
-	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts, Category: c.ID, Language: lang}
+	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts, Category: cid, Language: lang}
 	err = s.repo.Create(&data)
 	return err
 }

@@ -182,7 +182,7 @@ func (s *BotManagerImp) updateInfo(code string) {
 		desc = res["description"].(string)
 	}
 	activeNum := len(res["active_usernames"].([]interface{}))
-	s.dataService.Update(code, int64(res["id"].(float64)), res["title"].(string), desc, n, activeNum)
+	s.dataService.Update(code, int64(res["id"].(float64)), res["title"].(string), desc, n, activeNum, "", 0)
 }
 
 // 获取群人数
