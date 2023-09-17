@@ -113,9 +113,11 @@ func (s *DataInfoServiceImp) Delete(codes []string) (err error) {
 
 func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error {
 	cid := uint(0)
-	c, err := s.categoryService.GetOrCreate(category, 0)
-	if err == nil {
-		cid = c.ID
+	if len(category) > 0 {
+		c, err := s.categoryService.GetOrCreate(category, 0)
+		if err == nil {
+			cid = c.ID
+		}
 	}
 	if s.Exists(code) {
 		return s.Update(code, tid, name, desc, num, 0, lang, cid)
@@ -130,6 +132,5 @@ func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string,
 		ts = append(ts, *tag)
 	}
 	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts, Category: cid, Language: lang}
-	err = s.repo.Create(&data)
-	return err
+	return s.repo.Create(&data)
 }
