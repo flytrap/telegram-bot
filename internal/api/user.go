@@ -24,6 +24,11 @@ func (s *UserApi) ListUser(ctx context.Context, req *pb.QueryRequest) (*pb.Query
 		return &pb.QueryUserResp{Ret: &pb.RetInfo{Status: false, Msg: err.Error()}}, err
 	}
 	results := []*pb.BotUser{}
+	for _, item := range data {
+		i := pb.BotUser{}
+		mapstructure.Decode(item, &i)
+		results = append(results, &i)
+	}
 	copier.Copy(&results, &data)
 	return &pb.QueryUserResp{Ret: &pb.RetInfo{Status: true}, Data: results, Total: n}, nil
 }

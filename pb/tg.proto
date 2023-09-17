@@ -45,9 +45,10 @@ message DataItem {
     string code = 4;
     string name = 5;
     string desc = 6;
-    string category = 7;
-    string lang = 8;
-    repeated string tags = 9;
+    int64 categoryId = 7;
+    string category = 8;
+    string language = 9;
+    repeated string tags = 10;
 }
 
 message Ad {
@@ -56,13 +57,14 @@ message Ad {
     int32 global = 3;
     bool isShowAd = 4;
     string expire = 5;
-    uint32 category = 6;
-    string language = 7;
-    string name = 8;
-    string code = 9;
-    int32 type = 10;
-    uint32 number = 11;
-    string desc = 12;
+    int64 categoryId = 6;
+    string category = 7;
+    string language = 8;
+    string name = 9;
+    string code = 10;
+    int32 type = 11;
+    uint32 number = 12;
+    string desc = 13;
 }
 
 message Tag {
@@ -72,7 +74,7 @@ message Tag {
 }
 
 message BotUser {
-    int64 userID = 1;
+    int64 userId = 1;
     string firstName = 2;
     string lastName = 3;
     string username = 4;

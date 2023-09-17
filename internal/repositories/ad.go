@@ -33,7 +33,7 @@ func (s *AdRepositoryImp) Get(id uint) (data *models.Ad, err error) {
 }
 
 func (s *AdRepositoryImp) List(q string, start time.Time, end time.Time, offset int64, limit int64, ordering string) (n int64, data []*models.Ad, err error) {
-	query := s.Db
+	query := s.Db.Model(models.Ad{})
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
 	}

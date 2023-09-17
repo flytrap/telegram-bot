@@ -23,6 +23,10 @@ func (s *CategoryApi) ListCategory(ctx context.Context, req *pb.QueryRequest) (*
 		return &pb.QueryTagResp{Ret: &pb.RetInfo{Status: false, Msg: err.Error()}}, err
 	}
 	results := []*pb.Tag{}
+	for _, item := range data {
+		i := pb.Tag{Id: int64(item["id"].(uint)), Name: item["name"].(string), Weight: item["weight"].(int32)}
+		results = append(results, &i)
+	}
 	copier.Copy(&results, &data)
 	return &pb.QueryTagResp{Ret: &pb.RetInfo{Status: true}, Data: results, Total: n}, nil
 }

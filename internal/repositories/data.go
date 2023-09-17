@@ -35,7 +35,7 @@ func (s *DataInfoRepositoryImp) Get(code string) (data *models.DataInfo, err err
 }
 
 func (s *DataInfoRepositoryImp) List(q string, category uint, language string, offset int64, limit int64, ordering string) (n int64, data []*models.DataInfo, err error) {
-	query := s.Db
+	query := s.Db.Model(models.DataInfo{})
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
 	}

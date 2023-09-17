@@ -18,8 +18,8 @@ type AdService interface {
 	Delete(ids []uint) (err error)
 }
 
-func NewAdService(repo repositories.AdRepository) AdService {
-	res := AdServiceImp{repo: repo, keywordMap: map[string]map[string]interface{}{}, globalList: []map[string]interface{}{}}
+func NewAdService(repo repositories.AdRepository, categoryService CategoryService) AdService {
+	res := AdServiceImp{repo: repo, categoryService: categoryService, keywordMap: map[string]map[string]interface{}{}, globalList: []map[string]interface{}{}}
 	return &res
 }
 

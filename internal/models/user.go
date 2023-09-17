@@ -6,7 +6,7 @@ type User struct {
 	gorm.Model
 
 	// 系统信息
-	UserID       int64  `json:"user_id" gorm:"unique;comment:用户id"`
+	UserId       int64  `json:"user_id" gorm:"unique;comment:用户id"`
 	FirstName    string `json:"first_name" gorm:"size:256"`
 	LastName     string `json:"last_name" gorm:"size:256"`
 	Username     string `json:"username" gorm:"size:64;comment:用户名"`

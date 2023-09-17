@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -16,6 +17,10 @@ var (
 )
 
 func InitBot() (*tele.Bot, error) {
+	if len(config.C.Bot.Token) < 10 {
+		logrus.Warning("tg token not config")
+		return nil, nil
+	}
 	initMenu() // 初始化菜单项
 	c := http.Client{}
 	if len(config.C.Proxy.Protocal) > 0 { //设置代理

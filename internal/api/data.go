@@ -10,6 +10,7 @@ import (
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pb/v1"
 	"github.com/jinzhu/copier"
+	"github.com/mitchellh/mapstructure"
 )
 
 func NewTgBotApi(dataService services.DataService) pb.TgBotServiceServer {
@@ -56,7 +57,7 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 				log.Fatalf("recv error:%v", err)
 			}
 			fmt.Printf("Recved :%v \n", req.Name)
-			msgCh <- s.dataService.UpdateOrCreate(req.Code, req.Tid, req.Name, req.Desc, uint32(req.Number), req.Tags, req.Category, req.Lang)
+			msgCh <- s.dataService.UpdateOrCreate(req.Code, req.Tid, req.Name, req.Desc, uint32(req.Number), req.Tags, req.Category, req.Language)
 		}
 		close(msgCh)
 	}()
@@ -70,6 +71,11 @@ func (s *TgBotService) SearchData(ctx context.Context, req *pb.DataSearchRequest
 		return &pb.QueryDataResp{Ret: &pb.RetInfo{Status: false, Msg: err.Error()}}, err
 	}
 	results := []*pb.DataItem{}
+	for _, item := range data {
+		i := pb.DataItem{}
+		mapstructure.Decode(item, &i)
+		results = append(results, &i)
+	}
 	copier.Copy(&results, &data)
 	return &pb.QueryDataResp{Ret: &pb.RetInfo{Status: true}, Data: results, Total: n}, nil
 }

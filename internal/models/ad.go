@@ -24,6 +24,6 @@ type Ad struct {
 }
 
 func (item *Ad) ToMap() map[string]interface{} {
-	return map[string]interface{}{"type": item.Type, "code": item.Code, "global": item.Global, "category_id": item.Category,
-		"language": item.Language, "body": item.Desc, "num": item.Number, "name": item.Name, "keyword": item.Keyword, "is_show_ad": item.IsShowAd}
+	return map[string]interface{}{"id": item.ID, "type": item.Type, "code": item.Code, "global": item.Global, "category_id": item.Category,
+		"language": item.Language, "desc": item.Desc, "num": item.Number, "name": item.Name, "keyword": item.Keyword, "is_show_ad": item.IsShowAd}
 }

@@ -19,7 +19,7 @@
   "bot": {
     "api_id": "",
     "api_hash": "",
-    "token": "",
+    "token": "6463916376:AAGvhg0vckuCfxS1R2qNuQOb1BX5DjU22Og",
     "start": "Telegram语言包设置： \n【 [简体中文](tg://setlanguage?lang=zhcncc) | [繁體中文](tg://setlanguage?lang=zh-hant-beta) | [English](tg://setlanguage?lang=en) 】 \n 收录信息及时知：[群搜-索引社群](https://t.me/indexsearche) \n\n 请选择一个分类或回复关键词进行查询。",
     "menus": [
       ["社群", "同城", "闲聊"],

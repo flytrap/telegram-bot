@@ -30,7 +30,7 @@ func (s *UserServiceImp) List(q string, page int64, size int64, ordering string)
 		return
 	}
 	for _, item := range result {
-		data = append(data, map[string]interface{}{"Username": item.Username, "userID": item.UserID, "FirstName": item.FirstName, "LastName": item.LastName,
+		data = append(data, map[string]interface{}{"Username": item.Username, "userId": item.UserId, "FirstName": item.FirstName, "LastName": item.LastName,
 			"LanguageCode": item.LanguageCode, "Lang": item.Lang, "IsBot": item.IsBot, "IsPremium": item.IsPremium})
 	}
 	return

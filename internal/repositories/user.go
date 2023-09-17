@@ -57,6 +57,6 @@ func (s *UserRepositoryImp) Delete(userIds []int64) (err error) {
 }
 
 func (s *UserRepositoryImp) Update(userId int64, info map[string]interface{}) (err error) {
-	result := s.Db.Model(&models.User{UserID: userId}).Where("user_id = ?", userId).Updates(info)
+	result := s.Db.Model(&models.User{UserId: userId}).Where("user_id = ?", userId).Updates(info)
 	return errors.WithStack(result.Error)
 }

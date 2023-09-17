@@ -6,6 +6,7 @@ import (
 	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/flytrap/telegram-bot/internal/repositories"
 	"github.com/flytrap/telegram-bot/internal/serializers"
+	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,9 +51,11 @@ func (s *DataInfoServiceImp) List(q string, category string, language string, pa
 	results := []map[string]interface{}{}
 	for _, item := range data {
 		c, _ := s.categoryService.GetName(item.Category)
+		o := map[string]interface{}{}
+		mapstructure.Decode(item, &o)
+		o["Category"] = c
 
-		results = append(results, map[string]interface{}{"type": item.Type, "category": c, "code": item.Code,
-			"language": item.Language, "body": item.Desc, "num": item.Number, "name": item.Name})
+		results = append(results, o)
 	}
 	return n, results, nil
 }

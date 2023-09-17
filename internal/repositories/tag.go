@@ -39,7 +39,7 @@ func (s *DataTagRepositoryImp) GetMany(ids []uint) (data *[]models.Tag, err erro
 }
 
 func (s *DataTagRepositoryImp) List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.Tag, err error) {
-	query := s.Db
+	query := s.Db.Model(models.Tag{})
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
 	}

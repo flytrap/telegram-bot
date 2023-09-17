@@ -46,7 +46,7 @@ func (s *CategoryRepositoryImp) GetMany(ids []uint) (data *[]models.Category, er
 	return data, nil
 }
 func (s *CategoryRepositoryImp) List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.Tag, err error) {
-	query := s.Db
+	query := s.Db.Model(models.Category{})
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
 	}
