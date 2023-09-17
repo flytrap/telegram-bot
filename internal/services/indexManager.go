@@ -104,7 +104,7 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 		defer wg.Done()
 		n := int64(1)
 		for {
-			data, err := s.dataService.GetMany("", language, n, 1000)
+			_, data, err := s.dataService.List("", "", language, n, 1000, "")
 			if err != nil {
 				logrus.Warning(err)
 				break

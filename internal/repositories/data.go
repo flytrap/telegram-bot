@@ -10,13 +10,13 @@ import (
 
 type DataInfoRepository interface {
 	Get(code string) (*models.DataInfo, error)
-	GetMany(category uint, language string, offset int64, limit int64) ([]*models.DataInfo, error)
+	List(q string, category uint, language string, offset int64, limit int64, ordering string) (int64, []*models.DataInfo, error)
 	GetNeedUpdate(days int, offset int64, limit int64) (data []*models.DataInfo, err error)
 	QueryTag(tag string, offset int64, limit int64) ([]*models.DataInfo, error)
 
 	Create(*models.DataInfo) error
 	Update(code string, info map[string]interface{}) (err error)
-	Delete(code string) (err error)
+	Delete(codes []string) (err error)
 }
 
 func NewDataInfoRepository(db *gorm.DB) DataInfoRepository {
@@ -34,18 +34,25 @@ func (s *DataInfoRepositoryImp) Get(code string) (data *models.DataInfo, err err
 	return data, nil
 }
 
-func (s *DataInfoRepositoryImp) GetMany(category uint, language string, offset int64, limit int64) (data []*models.DataInfo, err error) {
+func (s *DataInfoRepositoryImp) List(q string, category uint, language string, offset int64, limit int64, ordering string) (n int64, data []*models.DataInfo, err error) {
 	query := s.Db
+	if len(q) > 0 {
+		query = query.Where("name like ?", q+"%")
+	}
 	if category > 0 {
 		query = query.Where("category = ?", category)
 	}
 	if len(language) > 0 {
 		query = query.Where("language = ?", language)
 	}
-	if err := query.Offset(int(offset)).Limit(int(limit)).Find(&data).Error; err != nil {
-		return nil, err
+	if len(ordering) == 0 {
+		ordering = "id desc"
 	}
-	return data, nil
+	if err := query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
+		return 0, nil, err
+	}
+	query.Count(&n)
+	return n, data, nil
 }
 
 func (s *DataInfoRepositoryImp) QueryTag(tag string, offset int64, limit int64) (data []*models.DataInfo, err error) {
@@ -65,8 +72,8 @@ func (s *DataInfoRepositoryImp) Create(data *models.DataInfo) (err error) {
 	return errors.WithStack(result.Error)
 }
 
-func (s *DataInfoRepositoryImp) Delete(code string) (err error) {
-	result := s.Db.Where("code=?", code).Delete(&models.DataInfo{})
+func (s *DataInfoRepositoryImp) Delete(codes []string) (err error) {
+	result := s.Db.Where("code in ?", codes).Delete(&models.DataInfo{})
 	return errors.WithStack(result.Error)
 }
 

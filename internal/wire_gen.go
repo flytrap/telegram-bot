@@ -7,6 +7,7 @@
 package app
 
 import (
+	"github.com/flytrap/telegram-bot/internal/api"
 	"github.com/flytrap/telegram-bot/internal/repositories"
 	"github.com/flytrap/telegram-bot/internal/services"
 )
@@ -38,8 +39,12 @@ func BuildInjector() (*Injector, error) {
 	adRepository := repositories.NewAdRepository(db)
 	adService := services.NewAdService(adRepository)
 	botManager := services.NewBotManager(dataService, indexMangerService, bot, userService, adService)
-	tgBotServiceServer := services.NewTgBotService(dataService)
-	grpcServer := InitGrpcServer(tgBotServiceServer)
+	tgBotServiceServer := api.NewTgBotApi(dataService)
+	adServiceServer := api.NewAdApi(adService)
+	tagServiceServer := api.NewDataTagApi(dataTagService)
+	categoryServiceServer := api.NewCategoryApi(categoryService)
+	userServiceServer := api.NewUserApi(userService)
+	grpcServer := InitGrpcServer(tgBotServiceServer, adServiceServer, tagServiceServer, categoryServiceServer, userServiceServer)
 	injector := &Injector{
 		Bot:          bot,
 		BotManager:   botManager,

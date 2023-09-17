@@ -10,7 +10,7 @@ import (
 type Ad struct {
 	gorm.Model
 
-	Keyword  string    `json:"keyword" gorm:"comment:关键词"`
+	Keyword  string    `json:"keyword" gorm:"size:64;comment:关键词"`
 	Global   int8      `json:"global" gorm:"default:0;comment:全局词条,0非全局"`
 	IsShowAd bool      `json:"is_show_ad" gorm:"default:false;comment:是否显示广告字样"`
 	Expire   time.Time `json:"expire" gorm:"comment:过期时间"`

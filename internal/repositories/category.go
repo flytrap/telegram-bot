@@ -7,13 +7,14 @@ import (
 )
 
 type CategoryRepository interface {
-	Get(id uint) (*models.Category, error)
-	GetAll(offset int, limit int) (data *[]models.Category, err error)
+	Get(name string) (*models.Category, error)
 	Query(name string, size int) (data *[]models.Category, err error)
 	GetMany(ids []uint) (data *[]models.Category, err error)
+	List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.Tag, err error)
 
 	Create(*models.Category) error
-	Delete(id uint) (err error)
+	Update(id uint, name string, weight int32) error
+	Delete(ids []uint) (err error)
 }
 
 func NewCategoryRepository(db *gorm.DB) CategoryRepository {
@@ -24,15 +25,15 @@ type CategoryRepositoryImp struct {
 	Db *gorm.DB
 }
 
-func (s *CategoryRepositoryImp) Get(id uint) (data *models.Category, err error) {
-	if err = s.Db.First(&data, "id = ?", id).Error; err != nil {
+func (s *CategoryRepositoryImp) Get(name string) (data *models.Category, err error) {
+	if err = s.Db.First(&data, "name = ?", name).Error; err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
 func (s *CategoryRepositoryImp) Query(name string, size int) (data *[]models.Category, err error) {
-	if err := s.Db.Where("en_name like ?", name+"%").Limit(size).Find(&data).Error; err != nil {
+	if err := s.Db.Where("name like ?", name+"%").Limit(size).Find(&data).Error; err != nil {
 		return nil, err
 	}
 	return data, nil
@@ -44,12 +45,20 @@ func (s *CategoryRepositoryImp) GetMany(ids []uint) (data *[]models.Category, er
 	}
 	return data, nil
 }
-
-func (s *CategoryRepositoryImp) GetAll(offset int, limit int) (data *[]models.Category, err error) {
-	if err := s.Db.Select("id", "name").Offset(offset).Limit(limit).Find(&data).Error; err != nil {
-		return nil, err
+func (s *CategoryRepositoryImp) List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.Tag, err error) {
+	query := s.Db
+	if len(q) > 0 {
+		query = query.Where("name like ?", q+"%")
 	}
-	return data, nil
+	if len(ordering) == 0 {
+		ordering = "id desc"
+	}
+
+	if err = query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
+		return 0, nil, err
+	}
+	query.Count(&n)
+	return n, data, nil
 }
 
 func (s *CategoryRepositoryImp) Create(data *models.Category) (err error) {
@@ -57,7 +66,16 @@ func (s *CategoryRepositoryImp) Create(data *models.Category) (err error) {
 	return errors.WithStack(result.Error)
 }
 
-func (s *CategoryRepositoryImp) Delete(id uint) (err error) {
-	result := s.Db.Where("id=?", id).Delete(models.Category{})
+func (s *CategoryRepositoryImp) Update(id uint, name string, weight int32) error {
+	info := map[string]interface{}{"weight": weight}
+	if len(name) > 0 {
+		info["name"] = name
+	}
+	result := s.Db.Model(&models.Category{}).Where("id = ?", id).Updates(info)
+	return errors.WithStack(result.Error)
+}
+
+func (s *CategoryRepositoryImp) Delete(ids []uint) (err error) {
+	result := s.Db.Where("id in ?", ids).Delete(models.Category{})
 	return errors.WithStack(result.Error)
 }

@@ -18,7 +18,7 @@ func main() {
 	app.Version = VERSION
 	app.Usage = "telegram-bot based on GRPC + WIRE."
 	app.Commands = []*cli.Command{
-		newWebCmd(ctx),
+		newIndexCmd(ctx), newGrpcCmd(ctx),
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -26,7 +26,7 @@ func main() {
 	}
 }
 
-func newWebCmd(ctx context.Context) *cli.Command {
+func newIndexCmd(ctx context.Context) *cli.Command {
 	return &cli.Command{
 		Name:  "index",
 		Usage: "Run tg-bot index server",
@@ -58,6 +58,27 @@ func newWebCmd(ctx context.Context) *cli.Command {
 				app.SetVersion(VERSION),
 				app.SetUpdateDb(c.Int64("update")),
 				app.SetIndex(c.String("index")),
+			)
+		},
+	}
+}
+
+func newGrpcCmd(ctx context.Context) *cli.Command {
+	return &cli.Command{
+		Name:  "grpc",
+		Usage: "Run tg-bot grpc server",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "conf",
+				Aliases:  []string{"c"},
+				Required: true,
+				Usage:    "指定启动配置文件(.json,.yaml,.toml)",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			return app.RunGrpc(ctx,
+				app.SetConfigFile(c.String("conf")),
+				app.SetVersion(VERSION),
 			)
 		},
 	}

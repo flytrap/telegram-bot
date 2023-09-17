@@ -14,11 +14,11 @@ func NewDataService(repo repositories.DataInfoRepository, tagService DataTagServ
 }
 
 type DataService interface {
-	GetMany(category string, language string, page int64, size int64) ([]map[string]interface{}, error)
+	List(q string, category string, language string, page int64, size int64, ordering string) (int64, []map[string]interface{}, error)
 	SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error)
 	GetNeedUpdateCode(days int, page int64, size int64) ([]string, error)
 	Update(code string, tid int64, name string, desc string, num uint32, weight int) error
-	Delete(code string) (err error)
+	Delete(codes []string) (err error)
 
 	UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error
 }
@@ -34,18 +34,18 @@ func (s *DataInfoServiceImp) Exists(code string) bool {
 	return data != nil
 }
 
-func (s *DataInfoServiceImp) GetMany(category string, language string, page int64, size int64) ([]map[string]interface{}, error) {
+func (s *DataInfoServiceImp) List(q string, category string, language string, page int64, size int64, ordering string) (int64, []map[string]interface{}, error) {
 	cs := uint(0)
 	var err error
 	if len(category) > 0 {
 		cs, err = s.categoryService.GetId(category)
 		if err != nil {
-			return nil, errors.New("category not found: " + category)
+			return 0, nil, errors.New("category not found: " + category)
 		}
 	}
-	data, err := s.repo.GetMany(cs, language, (page-1)*size, size)
+	n, data, err := s.repo.List(q, cs, language, (page-1)*size, size, ordering)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	results := []map[string]interface{}{}
 	for _, item := range data {
@@ -54,7 +54,7 @@ func (s *DataInfoServiceImp) GetMany(category string, language string, page int6
 		results = append(results, map[string]interface{}{"type": item.Type, "category": c, "code": item.Code,
 			"language": item.Language, "body": item.Desc, "num": item.Number, "name": item.Name})
 	}
-	return results, nil
+	return n, results, nil
 }
 
 func (s *DataInfoServiceImp) SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error) {
@@ -98,25 +98,28 @@ func (s *DataInfoServiceImp) Update(code string, tid int64, name string, desc st
 	return s.repo.Update(code, params)
 }
 
-func (s *DataInfoServiceImp) Delete(code string) (err error) {
-	return s.repo.Delete(code)
+func (s *DataInfoServiceImp) Delete(codes []string) (err error) {
+	return s.repo.Delete(codes)
 }
 
 func (s *DataInfoServiceImp) UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error {
 	if s.Exists(code) {
 		return s.Update(code, tid, name, desc, num, -1)
 	}
-	c, _ := s.categoryService.GetId(category)
+	c, err := s.categoryService.GetOrCreate(category, 0)
+	if err != nil {
+		return err
+	}
 	ts := []models.Tag{}
 	for _, t := range tags {
-		tag, err := s.tagService.GetOrCreate(t)
+		tag, err := s.tagService.GetOrCreate(t, 0)
 		if err != nil {
 			logrus.Warn(err)
 			continue
 		}
 		ts = append(ts, *tag)
 	}
-	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts, Category: c, Language: lang}
-	err := s.repo.Create(&data)
+	data := models.DataInfo{Code: code, Tid: tid, Name: name, Desc: desc, Number: num, Tags: ts, Category: c.ID, Language: lang}
+	err = s.repo.Create(&data)
 	return err
 }

@@ -9,9 +9,11 @@ import (
 type DataTagRepository interface {
 	Get(name string) (*models.Tag, error)
 	GetMany(ids []uint) (data *[]models.Tag, err error)
+	List(q string, offset int64, limit int64, ordering string) (int64, []*models.Tag, error)
 
 	Create(*models.Tag) error
-	Delete(id uint) (err error)
+	Update(id uint, name string, weight int32) error
+	Delete(ids []uint) (err error)
 }
 
 func NewDataTagRepository(db *gorm.DB) DataTagRepository {
@@ -36,12 +38,37 @@ func (s *DataTagRepositoryImp) GetMany(ids []uint) (data *[]models.Tag, err erro
 	return data, nil
 }
 
+func (s *DataTagRepositoryImp) List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.Tag, err error) {
+	query := s.Db
+	if len(q) > 0 {
+		query = query.Where("name like ?", q+"%")
+	}
+	if len(ordering) == 0 {
+		ordering = "id desc"
+	}
+
+	if err = query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
+		return 0, nil, err
+	}
+	query.Count(&n)
+	return n, data, nil
+}
+
 func (s *DataTagRepositoryImp) Create(data *models.Tag) (err error) {
 	result := s.Db.Create(data)
 	return errors.WithStack(result.Error)
 }
 
-func (s *DataTagRepositoryImp) Delete(id uint) (err error) {
-	result := s.Db.Where("id=?", id).Delete(models.Tag{})
+func (s *DataTagRepositoryImp) Update(id uint, name string, weight int32) error {
+	info := map[string]interface{}{"weight": weight}
+	if len(name) > 0 {
+		info["name"] = name
+	}
+	result := s.Db.Model(&models.Tag{}).Where("id = ?", id).Updates(info)
+	return errors.WithStack(result.Error)
+}
+
+func (s *DataTagRepositoryImp) Delete(ids []uint) (err error) {
+	result := s.Db.Where("id in ?", ids).Delete(models.Tag{})
 	return errors.WithStack(result.Error)
 }

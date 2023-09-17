@@ -7,9 +7,13 @@ import (
 )
 
 type UserService interface {
-	List(q string, page int64, size int64) (data []map[string]interface{}, err error)
+	List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error)
 	CreateOrUpdate(info map[string]interface{}) error
 	GetOrCreate(info map[string]interface{}) error
+
+	Update(info map[string]interface{}) error
+	Create(info map[string]interface{}) error
+	Delete(ids []int64) (err error)
 }
 
 func NewUserService(repo repositories.UserRepository) UserService {
@@ -20,16 +24,25 @@ type UserServiceImp struct {
 	repo repositories.UserRepository
 }
 
-func (s *UserServiceImp) List(q string, page int64, size int64) (data []map[string]interface{}, err error) {
-	result, err := s.repo.GetMany(q, (page-1)*size, size)
+func (s *UserServiceImp) List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error) {
+	n, result, err := s.repo.List(q, (page-1)*size, size, ordering)
 	if err != nil {
-		return nil, err
+		return
 	}
 	for _, item := range result {
 		data = append(data, map[string]interface{}{"Username": item.Username, "userID": item.UserID, "FirstName": item.FirstName, "LastName": item.LastName,
 			"LanguageCode": item.LanguageCode, "Lang": item.Lang, "IsBot": item.IsBot, "IsPremium": item.IsPremium})
 	}
 	return
+}
+
+func (s *UserServiceImp) Create(info map[string]interface{}) error {
+	data := models.User{}
+	err := mapstructure.Decode(info, &data)
+	if err != nil {
+		return err
+	}
+	return s.repo.Create(&data)
 }
 
 func (s *UserServiceImp) Update(info map[string]interface{}) error {
@@ -44,6 +57,10 @@ func (s *UserServiceImp) Update(info map[string]interface{}) error {
 	}
 
 	return s.repo.Update(userId, info)
+}
+
+func (s *UserServiceImp) Delete(ids []int64) (err error) {
+	return s.repo.Delete(ids)
 }
 
 func (s *UserServiceImp) CreateOrUpdate(info map[string]interface{}) error {

@@ -23,6 +23,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TgBotServiceClient interface {
 	ImportData(ctx context.Context, opts ...grpc.CallOption) (TgBotService_ImportDataClient, error)
+	SearchData(ctx context.Context, in *DataSearchRequest, opts ...grpc.CallOption) (*QueryDataResp, error)
+	UpdateData(ctx context.Context, in *DataItem, opts ...grpc.CallOption) (*RetInfo, error)
+	DeleteData(ctx context.Context, in *DeleteCodes, opts ...grpc.CallOption) (*RetInfo, error)
 }
 
 type tgBotServiceClient struct {
@@ -44,7 +47,7 @@ func (c *tgBotServiceClient) ImportData(ctx context.Context, opts ...grpc.CallOp
 
 type TgBotService_ImportDataClient interface {
 	Send(*DataItem) error
-	Recv() (*ImportResponse, error)
+	Recv() (*RetInfo, error)
 	grpc.ClientStream
 }
 
@@ -56,12 +59,39 @@ func (x *tgBotServiceImportDataClient) Send(m *DataItem) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *tgBotServiceImportDataClient) Recv() (*ImportResponse, error) {
-	m := new(ImportResponse)
+func (x *tgBotServiceImportDataClient) Recv() (*RetInfo, error) {
+	m := new(RetInfo)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (c *tgBotServiceClient) SearchData(ctx context.Context, in *DataSearchRequest, opts ...grpc.CallOption) (*QueryDataResp, error) {
+	out := new(QueryDataResp)
+	err := c.cc.Invoke(ctx, "/tg.v1.TgBotService/SearchData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tgBotServiceClient) UpdateData(ctx context.Context, in *DataItem, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.TgBotService/UpdateData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tgBotServiceClient) DeleteData(ctx context.Context, in *DeleteCodes, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.TgBotService/DeleteData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // TgBotServiceServer is the server API for TgBotService service.
@@ -69,6 +99,9 @@ func (x *tgBotServiceImportDataClient) Recv() (*ImportResponse, error) {
 // for forward compatibility
 type TgBotServiceServer interface {
 	ImportData(TgBotService_ImportDataServer) error
+	SearchData(context.Context, *DataSearchRequest) (*QueryDataResp, error)
+	UpdateData(context.Context, *DataItem) (*RetInfo, error)
+	DeleteData(context.Context, *DeleteCodes) (*RetInfo, error)
 	mustEmbedUnimplementedTgBotServiceServer()
 }
 
@@ -78,6 +111,15 @@ type UnimplementedTgBotServiceServer struct {
 
 func (UnimplementedTgBotServiceServer) ImportData(TgBotService_ImportDataServer) error {
 	return status.Errorf(codes.Unimplemented, "method ImportData not implemented")
+}
+func (UnimplementedTgBotServiceServer) SearchData(context.Context, *DataSearchRequest) (*QueryDataResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchData not implemented")
+}
+func (UnimplementedTgBotServiceServer) UpdateData(context.Context, *DataItem) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateData not implemented")
+}
+func (UnimplementedTgBotServiceServer) DeleteData(context.Context, *DeleteCodes) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteData not implemented")
 }
 func (UnimplementedTgBotServiceServer) mustEmbedUnimplementedTgBotServiceServer() {}
 
@@ -97,7 +139,7 @@ func _TgBotService_ImportData_Handler(srv interface{}, stream grpc.ServerStream)
 }
 
 type TgBotService_ImportDataServer interface {
-	Send(*ImportResponse) error
+	Send(*RetInfo) error
 	Recv() (*DataItem, error)
 	grpc.ServerStream
 }
@@ -106,7 +148,7 @@ type tgBotServiceImportDataServer struct {
 	grpc.ServerStream
 }
 
-func (x *tgBotServiceImportDataServer) Send(m *ImportResponse) error {
+func (x *tgBotServiceImportDataServer) Send(m *RetInfo) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -118,13 +160,80 @@ func (x *tgBotServiceImportDataServer) Recv() (*DataItem, error) {
 	return m, nil
 }
 
+func _TgBotService_SearchData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DataSearchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TgBotServiceServer).SearchData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.TgBotService/SearchData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TgBotServiceServer).SearchData(ctx, req.(*DataSearchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TgBotService_UpdateData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DataItem)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TgBotServiceServer).UpdateData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.TgBotService/UpdateData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TgBotServiceServer).UpdateData(ctx, req.(*DataItem))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TgBotService_DeleteData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCodes)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TgBotServiceServer).DeleteData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.TgBotService/DeleteData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TgBotServiceServer).DeleteData(ctx, req.(*DeleteCodes))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TgBotService_ServiceDesc is the grpc.ServiceDesc for TgBotService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var TgBotService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "tg.v1.TgBotService",
 	HandlerType: (*TgBotServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SearchData",
+			Handler:    _TgBotService_SearchData_Handler,
+		},
+		{
+			MethodName: "UpdateData",
+			Handler:    _TgBotService_UpdateData_Handler,
+		},
+		{
+			MethodName: "DeleteData",
+			Handler:    _TgBotService_DeleteData_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "ImportData",
@@ -133,5 +242,781 @@ var TgBotService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
+	Metadata: "tg.proto",
+}
+
+// AdServiceClient is the client API for AdService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AdServiceClient interface {
+	ListAd(ctx context.Context, in *AdFilter, opts ...grpc.CallOption) (*QueryAdResp, error)
+	CreateAd(ctx context.Context, in *Ad, opts ...grpc.CallOption) (*RetInfo, error)
+	UpdateAd(ctx context.Context, in *Ad, opts ...grpc.CallOption) (*RetInfo, error)
+	DeleteAd(ctx context.Context, in *DeleteIds, opts ...grpc.CallOption) (*RetInfo, error)
+}
+
+type adServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAdServiceClient(cc grpc.ClientConnInterface) AdServiceClient {
+	return &adServiceClient{cc}
+}
+
+func (c *adServiceClient) ListAd(ctx context.Context, in *AdFilter, opts ...grpc.CallOption) (*QueryAdResp, error) {
+	out := new(QueryAdResp)
+	err := c.cc.Invoke(ctx, "/tg.v1.AdService/ListAd", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adServiceClient) CreateAd(ctx context.Context, in *Ad, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.AdService/CreateAd", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adServiceClient) UpdateAd(ctx context.Context, in *Ad, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.AdService/UpdateAd", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adServiceClient) DeleteAd(ctx context.Context, in *DeleteIds, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.AdService/DeleteAd", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AdServiceServer is the server API for AdService service.
+// All implementations must embed UnimplementedAdServiceServer
+// for forward compatibility
+type AdServiceServer interface {
+	ListAd(context.Context, *AdFilter) (*QueryAdResp, error)
+	CreateAd(context.Context, *Ad) (*RetInfo, error)
+	UpdateAd(context.Context, *Ad) (*RetInfo, error)
+	DeleteAd(context.Context, *DeleteIds) (*RetInfo, error)
+	mustEmbedUnimplementedAdServiceServer()
+}
+
+// UnimplementedAdServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAdServiceServer struct {
+}
+
+func (UnimplementedAdServiceServer) ListAd(context.Context, *AdFilter) (*QueryAdResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAd not implemented")
+}
+func (UnimplementedAdServiceServer) CreateAd(context.Context, *Ad) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAd not implemented")
+}
+func (UnimplementedAdServiceServer) UpdateAd(context.Context, *Ad) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAd not implemented")
+}
+func (UnimplementedAdServiceServer) DeleteAd(context.Context, *DeleteIds) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAd not implemented")
+}
+func (UnimplementedAdServiceServer) mustEmbedUnimplementedAdServiceServer() {}
+
+// UnsafeAdServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AdServiceServer will
+// result in compilation errors.
+type UnsafeAdServiceServer interface {
+	mustEmbedUnimplementedAdServiceServer()
+}
+
+func RegisterAdServiceServer(s grpc.ServiceRegistrar, srv AdServiceServer) {
+	s.RegisterService(&AdService_ServiceDesc, srv)
+}
+
+func _AdService_ListAd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdFilter)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdServiceServer).ListAd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.AdService/ListAd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdServiceServer).ListAd(ctx, req.(*AdFilter))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdService_CreateAd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Ad)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdServiceServer).CreateAd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.AdService/CreateAd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdServiceServer).CreateAd(ctx, req.(*Ad))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdService_UpdateAd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Ad)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdServiceServer).UpdateAd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.AdService/UpdateAd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdServiceServer).UpdateAd(ctx, req.(*Ad))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdService_DeleteAd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteIds)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdServiceServer).DeleteAd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.AdService/DeleteAd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdServiceServer).DeleteAd(ctx, req.(*DeleteIds))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AdService_ServiceDesc is the grpc.ServiceDesc for AdService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AdService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "tg.v1.AdService",
+	HandlerType: (*AdServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListAd",
+			Handler:    _AdService_ListAd_Handler,
+		},
+		{
+			MethodName: "CreateAd",
+			Handler:    _AdService_CreateAd_Handler,
+		},
+		{
+			MethodName: "UpdateAd",
+			Handler:    _AdService_UpdateAd_Handler,
+		},
+		{
+			MethodName: "DeleteAd",
+			Handler:    _AdService_DeleteAd_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "tg.proto",
+}
+
+// CategoryServiceClient is the client API for CategoryService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type CategoryServiceClient interface {
+	ListCategory(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryTagResp, error)
+	CreateCategory(ctx context.Context, in *Tag, opts ...grpc.CallOption) (*RetInfo, error)
+	UpdateCategory(ctx context.Context, in *Tag, opts ...grpc.CallOption) (*RetInfo, error)
+	DeleteCategory(ctx context.Context, in *DeleteIds, opts ...grpc.CallOption) (*RetInfo, error)
+}
+
+type categoryServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCategoryServiceClient(cc grpc.ClientConnInterface) CategoryServiceClient {
+	return &categoryServiceClient{cc}
+}
+
+func (c *categoryServiceClient) ListCategory(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryTagResp, error) {
+	out := new(QueryTagResp)
+	err := c.cc.Invoke(ctx, "/tg.v1.CategoryService/ListCategory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *categoryServiceClient) CreateCategory(ctx context.Context, in *Tag, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.CategoryService/CreateCategory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *categoryServiceClient) UpdateCategory(ctx context.Context, in *Tag, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.CategoryService/UpdateCategory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *categoryServiceClient) DeleteCategory(ctx context.Context, in *DeleteIds, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.CategoryService/DeleteCategory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CategoryServiceServer is the server API for CategoryService service.
+// All implementations must embed UnimplementedCategoryServiceServer
+// for forward compatibility
+type CategoryServiceServer interface {
+	ListCategory(context.Context, *QueryRequest) (*QueryTagResp, error)
+	CreateCategory(context.Context, *Tag) (*RetInfo, error)
+	UpdateCategory(context.Context, *Tag) (*RetInfo, error)
+	DeleteCategory(context.Context, *DeleteIds) (*RetInfo, error)
+	mustEmbedUnimplementedCategoryServiceServer()
+}
+
+// UnimplementedCategoryServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedCategoryServiceServer struct {
+}
+
+func (UnimplementedCategoryServiceServer) ListCategory(context.Context, *QueryRequest) (*QueryTagResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCategory not implemented")
+}
+func (UnimplementedCategoryServiceServer) CreateCategory(context.Context, *Tag) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCategory not implemented")
+}
+func (UnimplementedCategoryServiceServer) UpdateCategory(context.Context, *Tag) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCategory not implemented")
+}
+func (UnimplementedCategoryServiceServer) DeleteCategory(context.Context, *DeleteIds) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCategory not implemented")
+}
+func (UnimplementedCategoryServiceServer) mustEmbedUnimplementedCategoryServiceServer() {}
+
+// UnsafeCategoryServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CategoryServiceServer will
+// result in compilation errors.
+type UnsafeCategoryServiceServer interface {
+	mustEmbedUnimplementedCategoryServiceServer()
+}
+
+func RegisterCategoryServiceServer(s grpc.ServiceRegistrar, srv CategoryServiceServer) {
+	s.RegisterService(&CategoryService_ServiceDesc, srv)
+}
+
+func _CategoryService_ListCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CategoryServiceServer).ListCategory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.CategoryService/ListCategory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CategoryServiceServer).ListCategory(ctx, req.(*QueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CategoryService_CreateCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Tag)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CategoryServiceServer).CreateCategory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.CategoryService/CreateCategory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CategoryServiceServer).CreateCategory(ctx, req.(*Tag))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CategoryService_UpdateCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Tag)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CategoryServiceServer).UpdateCategory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.CategoryService/UpdateCategory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CategoryServiceServer).UpdateCategory(ctx, req.(*Tag))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CategoryService_DeleteCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteIds)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CategoryServiceServer).DeleteCategory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.CategoryService/DeleteCategory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CategoryServiceServer).DeleteCategory(ctx, req.(*DeleteIds))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// CategoryService_ServiceDesc is the grpc.ServiceDesc for CategoryService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CategoryService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "tg.v1.CategoryService",
+	HandlerType: (*CategoryServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListCategory",
+			Handler:    _CategoryService_ListCategory_Handler,
+		},
+		{
+			MethodName: "CreateCategory",
+			Handler:    _CategoryService_CreateCategory_Handler,
+		},
+		{
+			MethodName: "UpdateCategory",
+			Handler:    _CategoryService_UpdateCategory_Handler,
+		},
+		{
+			MethodName: "DeleteCategory",
+			Handler:    _CategoryService_DeleteCategory_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "tg.proto",
+}
+
+// TagServiceClient is the client API for TagService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TagServiceClient interface {
+	ListTag(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryTagResp, error)
+	GetOrCreateTag(ctx context.Context, in *Tag, opts ...grpc.CallOption) (*RetInfo, error)
+	UpdateTag(ctx context.Context, in *Tag, opts ...grpc.CallOption) (*RetInfo, error)
+	DeleteTag(ctx context.Context, in *DeleteIds, opts ...grpc.CallOption) (*RetInfo, error)
+}
+
+type tagServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTagServiceClient(cc grpc.ClientConnInterface) TagServiceClient {
+	return &tagServiceClient{cc}
+}
+
+func (c *tagServiceClient) ListTag(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryTagResp, error) {
+	out := new(QueryTagResp)
+	err := c.cc.Invoke(ctx, "/tg.v1.TagService/ListTag", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tagServiceClient) GetOrCreateTag(ctx context.Context, in *Tag, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.TagService/GetOrCreateTag", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tagServiceClient) UpdateTag(ctx context.Context, in *Tag, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.TagService/UpdateTag", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tagServiceClient) DeleteTag(ctx context.Context, in *DeleteIds, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.TagService/DeleteTag", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TagServiceServer is the server API for TagService service.
+// All implementations must embed UnimplementedTagServiceServer
+// for forward compatibility
+type TagServiceServer interface {
+	ListTag(context.Context, *QueryRequest) (*QueryTagResp, error)
+	GetOrCreateTag(context.Context, *Tag) (*RetInfo, error)
+	UpdateTag(context.Context, *Tag) (*RetInfo, error)
+	DeleteTag(context.Context, *DeleteIds) (*RetInfo, error)
+	mustEmbedUnimplementedTagServiceServer()
+}
+
+// UnimplementedTagServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedTagServiceServer struct {
+}
+
+func (UnimplementedTagServiceServer) ListTag(context.Context, *QueryRequest) (*QueryTagResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTag not implemented")
+}
+func (UnimplementedTagServiceServer) GetOrCreateTag(context.Context, *Tag) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrCreateTag not implemented")
+}
+func (UnimplementedTagServiceServer) UpdateTag(context.Context, *Tag) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTag not implemented")
+}
+func (UnimplementedTagServiceServer) DeleteTag(context.Context, *DeleteIds) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteTag not implemented")
+}
+func (UnimplementedTagServiceServer) mustEmbedUnimplementedTagServiceServer() {}
+
+// UnsafeTagServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TagServiceServer will
+// result in compilation errors.
+type UnsafeTagServiceServer interface {
+	mustEmbedUnimplementedTagServiceServer()
+}
+
+func RegisterTagServiceServer(s grpc.ServiceRegistrar, srv TagServiceServer) {
+	s.RegisterService(&TagService_ServiceDesc, srv)
+}
+
+func _TagService_ListTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TagServiceServer).ListTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.TagService/ListTag",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TagServiceServer).ListTag(ctx, req.(*QueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TagService_GetOrCreateTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Tag)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TagServiceServer).GetOrCreateTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.TagService/GetOrCreateTag",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TagServiceServer).GetOrCreateTag(ctx, req.(*Tag))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TagService_UpdateTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Tag)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TagServiceServer).UpdateTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.TagService/UpdateTag",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TagServiceServer).UpdateTag(ctx, req.(*Tag))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TagService_DeleteTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteIds)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TagServiceServer).DeleteTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.TagService/DeleteTag",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TagServiceServer).DeleteTag(ctx, req.(*DeleteIds))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// TagService_ServiceDesc is the grpc.ServiceDesc for TagService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TagService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "tg.v1.TagService",
+	HandlerType: (*TagServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListTag",
+			Handler:    _TagService_ListTag_Handler,
+		},
+		{
+			MethodName: "GetOrCreateTag",
+			Handler:    _TagService_GetOrCreateTag_Handler,
+		},
+		{
+			MethodName: "UpdateTag",
+			Handler:    _TagService_UpdateTag_Handler,
+		},
+		{
+			MethodName: "DeleteTag",
+			Handler:    _TagService_DeleteTag_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "tg.proto",
+}
+
+// UserServiceClient is the client API for UserService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type UserServiceClient interface {
+	ListUser(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryUserResp, error)
+	CreateUser(ctx context.Context, in *BotUser, opts ...grpc.CallOption) (*RetInfo, error)
+	UpdateUser(ctx context.Context, in *BotUser, opts ...grpc.CallOption) (*RetInfo, error)
+	DeleteUser(ctx context.Context, in *DeleteIds, opts ...grpc.CallOption) (*RetInfo, error)
+}
+
+type userServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
+	return &userServiceClient{cc}
+}
+
+func (c *userServiceClient) ListUser(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryUserResp, error) {
+	out := new(QueryUserResp)
+	err := c.cc.Invoke(ctx, "/tg.v1.UserService/ListUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CreateUser(ctx context.Context, in *BotUser, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.UserService/CreateUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateUser(ctx context.Context, in *BotUser, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.UserService/UpdateUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteIds, opts ...grpc.CallOption) (*RetInfo, error) {
+	out := new(RetInfo)
+	err := c.cc.Invoke(ctx, "/tg.v1.UserService/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// UserServiceServer is the server API for UserService service.
+// All implementations must embed UnimplementedUserServiceServer
+// for forward compatibility
+type UserServiceServer interface {
+	ListUser(context.Context, *QueryRequest) (*QueryUserResp, error)
+	CreateUser(context.Context, *BotUser) (*RetInfo, error)
+	UpdateUser(context.Context, *BotUser) (*RetInfo, error)
+	DeleteUser(context.Context, *DeleteIds) (*RetInfo, error)
+	mustEmbedUnimplementedUserServiceServer()
+}
+
+// UnimplementedUserServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedUserServiceServer struct {
+}
+
+func (UnimplementedUserServiceServer) ListUser(context.Context, *QueryRequest) (*QueryUserResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUser not implemented")
+}
+func (UnimplementedUserServiceServer) CreateUser(context.Context, *BotUser) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateUser(context.Context, *BotUser) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteIds) (*RetInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
+
+// UnsafeUserServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserServiceServer will
+// result in compilation errors.
+type UnsafeUserServiceServer interface {
+	mustEmbedUnimplementedUserServiceServer()
+}
+
+func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
+	s.RegisterService(&UserService_ServiceDesc, srv)
+}
+
+func _UserService_ListUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.UserService/ListUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListUser(ctx, req.(*QueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BotUser)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.UserService/CreateUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateUser(ctx, req.(*BotUser))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BotUser)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.UserService/UpdateUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateUser(ctx, req.(*BotUser))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteIds)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/tg.v1.UserService/DeleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DeleteUser(ctx, req.(*DeleteIds))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var UserService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "tg.v1.UserService",
+	HandlerType: (*UserServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListUser",
+			Handler:    _UserService_ListUser_Handler,
+		},
+		{
+			MethodName: "CreateUser",
+			Handler:    _UserService_CreateUser_Handler,
+		},
+		{
+			MethodName: "UpdateUser",
+			Handler:    _UserService_UpdateUser_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _UserService_DeleteUser_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "tg.proto",
 }

@@ -165,7 +165,7 @@ func (s *BotManagerImp) updateInfo(code string) {
 	if err != nil {
 		logrus.Warn(err)
 		if strings.Contains(err.Error(), "chat not found") {
-			s.dataService.Delete(code)
+			s.dataService.Delete([]string{code})
 		} else if strings.Contains(err.Error(), "retry after") {
 			time.Sleep(time.Second * 999)
 		}

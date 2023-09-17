@@ -14,13 +14,17 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-func InitGrpcServer(ps pb.TgBotServiceServer) *GrpcServer {
-	return &GrpcServer{config: config.C.ServerConfig, tgBotService: ps}
+func InitGrpcServer(ps pb.TgBotServiceServer, tgAdService pb.AdServiceServer, tgTagService pb.TagServiceServer, tgCategoryService pb.CategoryServiceServer, tgUserService pb.UserServiceServer) *GrpcServer {
+	return &GrpcServer{config: config.C.ServerConfig, tgBotService: ps, tgAdService: tgAdService, tgTagService: tgTagService, tgCategoryService: tgCategoryService, tgUserService: tgUserService}
 }
 
 type GrpcServer struct {
-	config       config.ServerConfig
-	tgBotService pb.TgBotServiceServer
+	config            config.ServerConfig
+	tgBotService      pb.TgBotServiceServer
+	tgAdService       pb.AdServiceServer
+	tgTagService      pb.TagServiceServer
+	tgCategoryService pb.CategoryServiceServer
+	tgUserService     pb.UserServiceServer
 }
 
 func (s *GrpcServer) Run() error {
@@ -50,6 +54,10 @@ func (s *GrpcServer) Run() error {
 	srv := grpc.NewServer(opts...)
 
 	pb.RegisterTgBotServiceServer(srv, s.tgBotService)
+	pb.RegisterAdServiceServer(srv, s.tgAdService)
+	pb.RegisterCategoryServiceServer(srv, s.tgCategoryService)
+	pb.RegisterTagServiceServer(srv, s.tgTagService)
+	pb.RegisterUserServiceServer(srv, s.tgUserService)
 
 	reflection.Register(srv)
 

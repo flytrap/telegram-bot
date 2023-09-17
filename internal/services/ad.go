@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"errors"
 	"math/rand"
 	"time"
@@ -13,8 +12,10 @@ import (
 
 type AdService interface {
 	KeywordAd(keyword string) (map[string]interface{}, error)
-	List(q string, page int64, size int64) (data []map[string]interface{}, err error)
+	List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error)
 	Update(id uint, info map[string]interface{}) error
+	Create(info map[string]interface{}) error
+	Delete(ids []uint) (err error)
 }
 
 func NewAdService(repo repositories.AdRepository) AdService {
@@ -30,12 +31,11 @@ type AdServiceImp struct {
 	globalList      []map[string]interface{}
 }
 
-func (s *AdServiceImp) List(q string, page int64, size int64) (data []map[string]interface{}, err error) {
-	result, err := s.repo.GetMany(q, time.Time{}, time.Time{}, (page-1)*size, size)
+func (s *AdServiceImp) List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error) {
+	n, result, err := s.repo.List(q, time.Time{}, time.Time{}, (page-1)*size, size, ordering)
 	if err != nil {
-		return nil, err
+		return
 	}
-	json.Marshal(result)
 	for _, item := range result {
 		c, _ := s.categoryService.GetName(item.Category)
 		info := item.ToMap()
@@ -46,20 +46,27 @@ func (s *AdServiceImp) List(q string, page int64, size int64) (data []map[string
 }
 
 func (s *AdServiceImp) Update(id uint, info map[string]interface{}) error {
-	t := &models.User{}
-	err := mapstructure.Decode(info, t)
+	return s.repo.Update(id, info)
+}
+
+func (s *AdServiceImp) Create(info map[string]interface{}) error {
+	data := models.Ad{}
+	err := mapstructure.Decode(info, &data)
 	if err != nil {
 		return err
 	}
+	return s.repo.Create(&data)
+}
 
-	return s.repo.Update(id, info)
+func (s *AdServiceImp) Delete(ids []uint) (err error) {
+	return s.repo.Delete(ids)
 }
 
 func (s *AdServiceImp) Load() error {
 	if s.isLoad {
 		return nil
 	}
-	results, err := s.repo.GetMany("", time.Now(), time.Time{}, 0, 10000)
+	_, results, err := s.repo.List("", time.Now(), time.Time{}, 0, 10000, "")
 	if err != nil {
 		return err
 	}

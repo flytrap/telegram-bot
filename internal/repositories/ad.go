@@ -10,7 +10,7 @@ import (
 
 type AdRepository interface {
 	Get(id uint) (*models.Ad, error)
-	GetMany(q string, start time.Time, end time.Time, offset int64, limit int64) ([]*models.Ad, error)
+	List(q string, start time.Time, end time.Time, offset int64, limit int64, ordering string) (int64, []*models.Ad, error)
 
 	Create(*models.Ad) error
 	Update(id uint, info map[string]interface{}) (err error)
@@ -32,7 +32,7 @@ func (s *AdRepositoryImp) Get(id uint) (data *models.Ad, err error) {
 	return data, nil
 }
 
-func (s *AdRepositoryImp) GetMany(q string, start time.Time, end time.Time, offset int64, limit int64) (data []*models.Ad, err error) {
+func (s *AdRepositoryImp) List(q string, start time.Time, end time.Time, offset int64, limit int64, ordering string) (n int64, data []*models.Ad, err error) {
 	query := s.Db
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
@@ -44,11 +44,15 @@ func (s *AdRepositoryImp) GetMany(q string, start time.Time, end time.Time, offs
 	} else if !end.IsZero() {
 		query = query.Where("expire < ?", start)
 	}
-
-	if err := query.Offset(int(offset)).Limit(int(limit)).Find(&data).Error; err != nil {
-		return nil, err
+	if len(ordering) == 0 {
+		ordering = "id desc"
 	}
-	return data, nil
+
+	if err := query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
+		return 0, nil, err
+	}
+	query.Count(&n)
+	return n, data, nil
 }
 
 func (s *AdRepositoryImp) Create(data *models.Ad) (err error) {

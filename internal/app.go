@@ -88,6 +88,24 @@ func RunIndex(ctx context.Context, opts ...Option) error {
 	return nil
 }
 
+func RunGrpc(ctx context.Context, opts ...Option) error {
+	initLogger()
+	var o options
+	for _, opt := range opts {
+		opt(&o)
+	}
+	config.MustLoad(o.ConfigFile)
+	config.PrintWithJSON()
+
+	injector, err := BuildInjector()
+	if err != nil {
+		return err
+	}
+	injector.IndexManager.InitIndex(ctx)
+
+	return injector.GrpcServer.Run()
+}
+
 func initLogger() {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		ForceQuote:      true,                  //键值对加引号
