@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/flytrap/telegram-bot/pkg/indexsearch"
 	"github.com/redis/rueidis"
 	"github.com/sirupsen/logrus"
@@ -104,7 +105,8 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 		defer wg.Done()
 		n := int64(1)
 		for {
-			_, data, err := s.dataService.List("", "", language, n, 1000, "")
+			data := []*models.DataInfo{}
+			_, err := s.dataService.List("", "", language, n, 1000, "", &data)
 			if err != nil {
 				logrus.Warning(err)
 				break
@@ -115,7 +117,7 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 			}
 			items := map[string]interface{}{}
 			for _, item := range data {
-				items[item["code"].(string)] = item
+				items[item.Code] = item
 			}
 			logrus.Info("read items: ", len(items))
 			c <- items

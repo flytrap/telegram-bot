@@ -39,7 +39,7 @@ func BuildInjector() (*Injector, error) {
 	adRepository := repositories.NewAdRepository(db)
 	adService := services.NewAdService(adRepository, categoryService)
 	botManager := services.NewBotManager(dataService, indexMangerService, bot, userService, adService)
-	tgBotServiceServer := api.NewTgBotApi(dataService)
+	tgBotServiceServer := api.NewTgBotApi(dataService, categoryService)
 	adServiceServer := api.NewAdApi(adService)
 	tagServiceServer := api.NewDataTagApi(dataTagService)
 	categoryServiceServer := api.NewCategoryApi(categoryService)

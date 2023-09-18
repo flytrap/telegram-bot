@@ -8,7 +8,7 @@ import (
 
 type UserRepository interface {
 	Get(userId int64) (*models.User, error)
-	List(q string, offset int64, limit int64, ordering string) (int64, []*models.User, error)
+	List(q string, offset int64, limit int64, ordering string, data interface{}) (int64, error)
 
 	Create(*models.User) error
 	Update(userId int64, info map[string]interface{}) (err error)
@@ -30,7 +30,7 @@ func (s *UserRepositoryImp) Get(userId int64) (data *models.User, err error) {
 	return data, nil
 }
 
-func (s *UserRepositoryImp) List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.User, err error) {
+func (s *UserRepositoryImp) List(q string, offset int64, limit int64, ordering string, data interface{}) (n int64, err error) {
 	query := s.Db
 	if len(q) > 0 {
 		query = query.Where("username like ?", q+"%")
@@ -39,11 +39,11 @@ func (s *UserRepositoryImp) List(q string, offset int64, limit int64, ordering s
 		ordering = "id desc"
 	}
 
-	if err := query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
-		return 0, nil, err
+	if err := query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(data).Error; err != nil {
+		return 0, err
 	}
 	query.Count(&n)
-	return n, data, nil
+	return n, nil
 }
 
 func (s *UserRepositoryImp) Create(data *models.User) (err error) {

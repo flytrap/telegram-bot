@@ -7,17 +7,16 @@ import (
 
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pb/v1"
-	"github.com/jinzhu/copier"
-	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 )
 
-func NewTgBotApi(dataService services.DataService) pb.TgBotServiceServer {
-	return &TgBotService{dataService: dataService}
+func NewTgBotApi(dataService services.DataService, categoryService services.CategoryService) pb.TgBotServiceServer {
+	return &TgBotService{dataService: dataService, categoryService: categoryService}
 }
 
 type TgBotService struct {
-	dataService services.DataService
+	dataService     services.DataService
+	categoryService services.CategoryService
 	pb.UnimplementedTgBotServiceServer
 }
 
@@ -55,8 +54,8 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 			if err != nil {
 				logrus.Fatalf("recv error:%v", err)
 			}
-			logrus.Printf("Recved :%v \n", req.Name)
-			msgCh <- s.dataService.UpdateOrCreate(req.Code, req.Tid, req.Name, req.Desc, uint32(req.Number), req.Tags, req.Category, req.Language)
+			logrus.Printf("Recved :%v \n", req.Detail.Name)
+			msgCh <- s.dataService.UpdateOrCreate(req.Detail.Code, req.Detail.Tid, req.Detail.Name, req.Detail.Desc, uint32(req.Detail.Number), req.Tags, req.Category, req.Detail.Language)
 		}
 		close(msgCh)
 	}()
@@ -65,22 +64,22 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 }
 
 func (s *TgBotService) SearchData(ctx context.Context, req *pb.DataSearchRequest) (*pb.QueryDataResp, error) {
-	n, data, err := s.dataService.List(req.Q, req.Category, req.Lang, req.Page, req.Size, req.Order)
+	items := []*pb.DataItem{}
+	n, err := s.dataService.List(req.Q, req.Category, req.Lang, req.Page, req.Size, req.Order, &items)
 	if err != nil {
 		return &pb.QueryDataResp{Ret: &pb.RetInfo{Status: false, Msg: err.Error()}}, err
 	}
-	results := []*pb.DataItem{}
-	for _, item := range data {
-		i := pb.DataItem{}
-		mapstructure.Decode(item, &i)
+	results := []*pb.DataInfo{}
+	for _, item := range items {
+		c, _ := s.categoryService.GetName(uint(item.Category))
+		i := pb.DataInfo{Detail: item, Category: c}
 		results = append(results, &i)
 	}
-	copier.Copy(&results, &data)
 	return &pb.QueryDataResp{Ret: &pb.RetInfo{Status: true}, Data: results, Total: n}, nil
 }
 
 func (s *TgBotService) UpdateData(ctx context.Context, req *pb.DataItem) (*pb.RetInfo, error) {
-	err := s.dataService.Update(req.Code, req.Tid, req.Name, req.Desc, req.Number, -1, req.Language, uint(req.CategoryId))
+	err := s.dataService.Update(req.Code, req.Tid, req.Name, req.Desc, req.Number, -1, req.Language, uint(req.Category))
 	if err != nil {
 		return &pb.RetInfo{Status: false, Msg: err.Error()}, err
 	}

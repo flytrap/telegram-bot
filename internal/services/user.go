@@ -7,7 +7,7 @@ import (
 )
 
 type UserService interface {
-	List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error)
+	List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error)
 	CreateOrUpdate(info map[string]interface{}) error
 	GetOrCreate(info map[string]interface{}) error
 
@@ -24,15 +24,8 @@ type UserServiceImp struct {
 	repo repositories.UserRepository
 }
 
-func (s *UserServiceImp) List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error) {
-	n, result, err := s.repo.List(q, (page-1)*size, size, ordering)
-	if err != nil {
-		return
-	}
-	for _, item := range result {
-		data = append(data, map[string]interface{}{"Username": item.Username, "userId": item.UserId, "FirstName": item.FirstName, "LastName": item.LastName,
-			"LanguageCode": item.LanguageCode, "Lang": item.Lang, "IsBot": item.IsBot, "IsPremium": item.IsPremium})
-	}
+func (s *UserServiceImp) List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error) {
+	n, err = s.repo.List(q, (page-1)*size, size, ordering, data)
 	return
 }
 

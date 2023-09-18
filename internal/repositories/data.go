@@ -10,7 +10,7 @@ import (
 
 type DataInfoRepository interface {
 	Get(code string) (*models.DataInfo, error)
-	List(q string, category uint, language string, offset int64, limit int64, ordering string) (int64, []*models.DataInfo, error)
+	List(q string, category uint, language string, offset int64, limit int64, ordering string, data interface{}) (int64, error)
 	GetNeedUpdate(days int, offset int64, limit int64) (data []*models.DataInfo, err error)
 	QueryTag(tag string, offset int64, limit int64) ([]*models.DataInfo, error)
 
@@ -34,7 +34,7 @@ func (s *DataInfoRepositoryImp) Get(code string) (data *models.DataInfo, err err
 	return data, nil
 }
 
-func (s *DataInfoRepositoryImp) List(q string, category uint, language string, offset int64, limit int64, ordering string) (n int64, data []*models.DataInfo, err error) {
+func (s *DataInfoRepositoryImp) List(q string, category uint, language string, offset int64, limit int64, ordering string, data interface{}) (n int64, err error) {
 	query := s.Db.Model(models.DataInfo{})
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
@@ -48,11 +48,11 @@ func (s *DataInfoRepositoryImp) List(q string, category uint, language string, o
 	if len(ordering) == 0 {
 		ordering = "id desc"
 	}
-	if err := query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
-		return 0, nil, err
+	if err := query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(data).Error; err != nil {
+		return 0, err
 	}
 	query.Count(&n)
-	return n, data, nil
+	return n, nil
 }
 
 func (s *DataInfoRepositoryImp) QueryTag(tag string, offset int64, limit int64) (data []*models.DataInfo, err error) {

@@ -12,7 +12,7 @@ import (
 
 type AdService interface {
 	KeywordAd(keyword string) (map[string]interface{}, error)
-	List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error)
+	List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error)
 	Update(id uint, info map[string]interface{}) error
 	Create(info map[string]interface{}) error
 	Delete(ids []uint) (err error)
@@ -31,16 +31,10 @@ type AdServiceImp struct {
 	globalList      []map[string]interface{}
 }
 
-func (s *AdServiceImp) List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error) {
-	n, result, err := s.repo.List(q, time.Time{}, time.Time{}, (page-1)*size, size, ordering)
+func (s *AdServiceImp) List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error) {
+	n, err = s.repo.List(q, time.Time{}, time.Time{}, (page-1)*size, size, ordering, data)
 	if err != nil {
 		return
-	}
-	for _, item := range result {
-		c, _ := s.categoryService.GetName(item.Category)
-		info := item.ToMap()
-		info["category"] = c
-		data = append(data, info)
 	}
 	return
 }
@@ -66,7 +60,8 @@ func (s *AdServiceImp) Load() error {
 	if s.isLoad {
 		return nil
 	}
-	_, results, err := s.repo.List("", time.Now(), time.Time{}, 0, 10000, "")
+	results := []models.Ad{}
+	_, err := s.repo.List("", time.Now(), time.Time{}, 0, 10000, "", results)
 	if err != nil {
 		return err
 	}

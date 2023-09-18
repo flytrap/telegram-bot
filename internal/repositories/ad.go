@@ -10,7 +10,7 @@ import (
 
 type AdRepository interface {
 	Get(id uint) (*models.Ad, error)
-	List(q string, start time.Time, end time.Time, offset int64, limit int64, ordering string) (int64, []*models.Ad, error)
+	List(q string, start time.Time, end time.Time, offset int64, limit int64, ordering string, data interface{}) (int64, error)
 
 	Create(*models.Ad) error
 	Update(id uint, info map[string]interface{}) (err error)
@@ -32,7 +32,7 @@ func (s *AdRepositoryImp) Get(id uint) (data *models.Ad, err error) {
 	return data, nil
 }
 
-func (s *AdRepositoryImp) List(q string, start time.Time, end time.Time, offset int64, limit int64, ordering string) (n int64, data []*models.Ad, err error) {
+func (s *AdRepositoryImp) List(q string, start time.Time, end time.Time, offset int64, limit int64, ordering string, data interface{}) (n int64, err error) {
 	query := s.Db.Model(models.Ad{})
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
@@ -48,11 +48,11 @@ func (s *AdRepositoryImp) List(q string, start time.Time, end time.Time, offset 
 		ordering = "id desc"
 	}
 
-	if err := query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
-		return 0, nil, err
+	if err := query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(data).Error; err != nil {
+		return 0, err
 	}
 	query.Count(&n)
-	return n, data, nil
+	return n, nil
 }
 
 func (s *AdRepositoryImp) Create(data *models.Ad) (err error) {

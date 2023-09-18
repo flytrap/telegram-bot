@@ -8,7 +8,7 @@ import (
 )
 
 type CategoryService interface {
-	List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error)
+	List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error)
 	Update(id uint, name string, weight int32) error
 	Create(name string, weight int32) error
 	Delete(ids []uint) (err error)
@@ -31,14 +31,8 @@ type CategoryServiceImp struct {
 	nameMap map[string]uint
 }
 
-func (s *CategoryServiceImp) List(q string, page int64, size int64, ordering string) (n int64, data []map[string]interface{}, err error) {
-	n, result, err := s.repo.List(q, (page-1)*size, size, ordering)
-	if err != nil {
-		return
-	}
-	for _, item := range result {
-		data = append(data, map[string]interface{}{"name": item.Name, "weight": item.Weight, "id": item.ID})
-	}
+func (s *CategoryServiceImp) List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error) {
+	n, err = s.repo.List(q, (page-1)*size, size, ordering, data)
 	return
 }
 
@@ -72,7 +66,8 @@ func (s *CategoryServiceImp) Delete(ids []uint) (err error) {
 }
 
 func (s *CategoryServiceImp) Load() error {
-	_, results, err := s.repo.List("", 0, 10000, "")
+	results := []*models.Category{}
+	_, err := s.repo.List("", 0, 10000, "", &results)
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ type CategoryRepository interface {
 	Get(name string) (*models.Category, error)
 	Query(name string, size int) (data *[]models.Category, err error)
 	GetMany(ids []uint) (data *[]models.Category, err error)
-	List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.Tag, err error)
+	List(q string, offset int64, limit int64, ordering string, data interface{}) (n int64, err error)
 
 	Create(*models.Category) error
 	Update(id uint, name string, weight int32) error
@@ -45,7 +45,7 @@ func (s *CategoryRepositoryImp) GetMany(ids []uint) (data *[]models.Category, er
 	}
 	return data, nil
 }
-func (s *CategoryRepositoryImp) List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.Tag, err error) {
+func (s *CategoryRepositoryImp) List(q string, offset int64, limit int64, ordering string, data interface{}) (n int64, err error) {
 	query := s.Db.Model(models.Category{})
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
@@ -54,11 +54,11 @@ func (s *CategoryRepositoryImp) List(q string, offset int64, limit int64, orderi
 		ordering = "id desc"
 	}
 
-	if err = query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
-		return 0, nil, err
+	if err = query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(data).Error; err != nil {
+		return 0, err
 	}
 	query.Count(&n)
-	return n, data, nil
+	return n, nil
 }
 
 func (s *CategoryRepositoryImp) Create(data *models.Category) (err error) {

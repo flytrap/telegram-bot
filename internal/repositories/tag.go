@@ -9,7 +9,7 @@ import (
 type DataTagRepository interface {
 	Get(name string) (*models.Tag, error)
 	GetMany(ids []uint) (data *[]models.Tag, err error)
-	List(q string, offset int64, limit int64, ordering string) (int64, []*models.Tag, error)
+	List(q string, offset int64, limit int64, ordering string, data interface{}) (int64, error)
 
 	Create(*models.Tag) error
 	Update(id uint, name string, weight int32) error
@@ -38,7 +38,7 @@ func (s *DataTagRepositoryImp) GetMany(ids []uint) (data *[]models.Tag, err erro
 	return data, nil
 }
 
-func (s *DataTagRepositoryImp) List(q string, offset int64, limit int64, ordering string) (n int64, data []*models.Tag, err error) {
+func (s *DataTagRepositoryImp) List(q string, offset int64, limit int64, ordering string, data interface{}) (n int64, err error) {
 	query := s.Db.Model(models.Tag{})
 	if len(q) > 0 {
 		query = query.Where("name like ?", q+"%")
@@ -47,11 +47,11 @@ func (s *DataTagRepositoryImp) List(q string, offset int64, limit int64, orderin
 		ordering = "id desc"
 	}
 
-	if err = query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(&data).Error; err != nil {
-		return 0, nil, err
+	if err = query.Offset(int(offset)).Limit(int(limit)).Order(ordering).Find(data).Error; err != nil {
+		return 0, err
 	}
 	query.Count(&n)
-	return n, data, nil
+	return n, nil
 }
 
 func (s *DataTagRepositoryImp) Create(data *models.Tag) (err error) {

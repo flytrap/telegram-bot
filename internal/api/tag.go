@@ -18,18 +18,14 @@ type DataTagApi struct {
 }
 
 func (s *DataTagApi) ListTag(ctx context.Context, req *pb.QueryRequest) (*pb.QueryTagResp, error) {
-	n, data, err := s.tagService.List(req.Q, req.Page, req.Size, req.Order)
+	results := []*pb.Tag{}
+	n, err := s.tagService.List(req.Q, req.Page, req.Size, req.Order, &results)
 	if err != nil {
 		return &pb.QueryTagResp{Ret: &pb.RetInfo{Status: false, Msg: err.Error()}}, err
 	}
-	results := []*pb.Tag{}
-	for _, item := range data {
-		i := pb.Tag{Id: int64(item["id"].(uint)), Name: item["name"].(string), Weight: item["weight"].(int32)}
-		results = append(results, &i)
-	}
-	copier.Copy(&results, &data)
 	return &pb.QueryTagResp{Ret: &pb.RetInfo{Status: true}, Data: results, Total: n}, nil
 }
+
 func (s *DataTagApi) GetOrCreateTag(ctx context.Context, req *pb.Tag) (*pb.RetInfo, error) {
 	_, err := s.tagService.GetOrCreate(req.Name, req.Weight)
 	if err != nil {
@@ -37,6 +33,7 @@ func (s *DataTagApi) GetOrCreateTag(ctx context.Context, req *pb.Tag) (*pb.RetIn
 	}
 	return &pb.RetInfo{Status: true}, nil
 }
+
 func (s *DataTagApi) UpdateTag(ctx context.Context, req *pb.Tag) (*pb.RetInfo, error) {
 	err := s.tagService.Update(uint(req.Id), req.Name, req.Weight)
 	if err != nil {
@@ -44,6 +41,7 @@ func (s *DataTagApi) UpdateTag(ctx context.Context, req *pb.Tag) (*pb.RetInfo, e
 	}
 	return &pb.RetInfo{Status: true}, nil
 }
+
 func (s *DataTagApi) DeleteTag(ctx context.Context, req *pb.DeleteIds) (*pb.RetInfo, error) {
 	ids := []uint{}
 	copier.Copy(&ids, &req.Ids)

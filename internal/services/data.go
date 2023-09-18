@@ -6,7 +6,6 @@ import (
 	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/flytrap/telegram-bot/internal/repositories"
 	"github.com/flytrap/telegram-bot/internal/serializers"
-	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 )
 
@@ -15,7 +14,7 @@ func NewDataService(repo repositories.DataInfoRepository, tagService DataTagServ
 }
 
 type DataService interface {
-	List(q string, category string, language string, page int64, size int64, ordering string) (int64, []map[string]interface{}, error)
+	List(q string, category string, language string, page int64, size int64, ordering string, data interface{}) (int64, error)
 	SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error)
 	GetNeedUpdateCode(days int, page int64, size int64) ([]string, error)
 	Update(code string, tid int64, name string, desc string, num uint32, weight int, lang string, category uint) error
@@ -35,29 +34,20 @@ func (s *DataInfoServiceImp) Exists(code string) bool {
 	return data != nil
 }
 
-func (s *DataInfoServiceImp) List(q string, category string, language string, page int64, size int64, ordering string) (int64, []map[string]interface{}, error) {
+func (s *DataInfoServiceImp) List(q string, category string, language string, page int64, size int64, ordering string, data interface{}) (int64, error) {
 	cs := uint(0)
 	var err error
 	if len(category) > 0 {
 		cs, err = s.categoryService.GetId(category)
 		if err != nil {
-			return 0, nil, errors.New("category not found: " + category)
+			return 0, errors.New("category not found: " + category)
 		}
 	}
-	n, data, err := s.repo.List(q, cs, language, (page-1)*size, size, ordering)
+	n, err := s.repo.List(q, cs, language, (page-1)*size, size, ordering, data)
 	if err != nil {
-		return 0, nil, err
+		return 0, err
 	}
-	results := []map[string]interface{}{}
-	for _, item := range data {
-		c, _ := s.categoryService.GetName(item.Category)
-		o := map[string]interface{}{}
-		mapstructure.Decode(item, &o)
-		o["Category"] = c
-
-		results = append(results, o)
-	}
-	return n, results, nil
+	return n, nil
 }
 
 func (s *DataInfoServiceImp) SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error) {

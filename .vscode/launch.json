@@ -61,7 +61,7 @@
                 "-c",
                 "${workspaceRoot}/config/config.json",
                 "-i",
-                "delete"
+                "load"
             ]
         }
     ]

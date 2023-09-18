@@ -46,7 +46,7 @@ func (c *tgBotServiceClient) ImportData(ctx context.Context, opts ...grpc.CallOp
 }
 
 type TgBotService_ImportDataClient interface {
-	Send(*DataItem) error
+	Send(*DataInfo) error
 	Recv() (*RetInfo, error)
 	grpc.ClientStream
 }
@@ -55,7 +55,7 @@ type tgBotServiceImportDataClient struct {
 	grpc.ClientStream
 }
 
-func (x *tgBotServiceImportDataClient) Send(m *DataItem) error {
+func (x *tgBotServiceImportDataClient) Send(m *DataInfo) error {
 	return x.ClientStream.SendMsg(m)
 }
 
@@ -140,7 +140,7 @@ func _TgBotService_ImportData_Handler(srv interface{}, stream grpc.ServerStream)
 
 type TgBotService_ImportDataServer interface {
 	Send(*RetInfo) error
-	Recv() (*DataItem, error)
+	Recv() (*DataInfo, error)
 	grpc.ServerStream
 }
 
@@ -152,8 +152,8 @@ func (x *tgBotServiceImportDataServer) Send(m *RetInfo) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *tgBotServiceImportDataServer) Recv() (*DataItem, error) {
-	m := new(DataItem)
+func (x *tgBotServiceImportDataServer) Recv() (*DataInfo, error) {
+	m := new(DataInfo)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
