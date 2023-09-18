@@ -33,7 +33,7 @@ func BuildInjector() (*Injector, error) {
 	if err != nil {
 		return nil, err
 	}
-	indexMangerService := services.NewIndexMangerService(coreClient, dataService)
+	indexMangerService := services.NewIndexMangerService(coreClient, dataService, categoryService)
 	userRepository := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepository)
 	adRepository := repositories.NewAdRepository(db)

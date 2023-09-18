@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/flytrap/telegram-bot/internal/config"
-	"github.com/flytrap/telegram-bot/internal/models"
+	"github.com/flytrap/telegram-bot/internal/serializers"
 	"github.com/flytrap/telegram-bot/pkg/indexsearch"
 	"github.com/redis/rueidis"
 	"github.com/sirupsen/logrus"
@@ -23,15 +24,16 @@ type IndexMangerService interface {
 	Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) ([]map[string]interface{}, error)
 }
 
-func NewIndexMangerService(client rueidis.CoreClient, dataService DataService) IndexMangerService {
-	i := IndexMangerServiceImp{Client: client, dataService: dataService, indexes: map[string]indexsearch.IndexSearch{}}
+func NewIndexMangerService(client rueidis.CoreClient, dataService DataService, categoryService CategoryService) IndexMangerService {
+	i := IndexMangerServiceImp{Client: client, dataService: dataService, categoryService: categoryService, indexes: map[string]indexsearch.IndexSearch{}}
 	return &i
 }
 
 type IndexMangerServiceImp struct {
-	Client      rueidis.CoreClient
-	dataService DataService
-	indexes     map[string]indexsearch.IndexSearch
+	Client          rueidis.CoreClient
+	dataService     DataService
+	categoryService CategoryService
+	indexes         map[string]indexsearch.IndexSearch
 }
 
 func (s *IndexMangerServiceImp) IndexName(key string) string {
@@ -105,7 +107,7 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 		defer wg.Done()
 		n := int64(1)
 		for {
-			data := []*models.DataInfo{}
+			data := []*serializers.DataCache{}
 			_, err := s.dataService.List("", "", language, n, 1000, "", &data)
 			if err != nil {
 				logrus.Warning(err)
@@ -117,6 +119,11 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 			}
 			items := map[string]interface{}{}
 			for _, item := range data {
+				id, err := strconv.Atoi(item.Category)
+				if err == nil && id > 0 {
+					ca, _ := s.categoryService.GetName(uint(id))
+					item.Category = ca
+				}
 				items[item.Code] = item
 			}
 			logrus.Info("read items: ", len(items))
