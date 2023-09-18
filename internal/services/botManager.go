@@ -143,7 +143,7 @@ func (s *BotManagerImp) QueryCacheItems(ctx context.Context, name string, text s
 	}
 	items := []string{}
 	for i, item := range data {
-		items = append(items, human.TgGroupItemInfo(int(page-1)*int(size)+i+1, item["code"].(string), int(item["type"].(float64)), item["name"].(string), int64(item["num"].(float64))))
+		items = append(items, human.TgGroupItemInfo(int(page-1)*int(size)+i+1, item["code"].(string), int(item["type"].(float64)), item["name"].(string), int64(item["number"].(float64))))
 	}
 	return items, nil
 }
