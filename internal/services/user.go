@@ -1,27 +1,45 @@
 package services
 
 import (
+	"context"
+	"time"
+
 	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/flytrap/telegram-bot/internal/repositories"
+	"github.com/flytrap/telegram-bot/pkg/redis"
 	"github.com/mitchellh/mapstructure"
 )
 
 type UserService interface {
+	Check(ctx context.Context, userId int64) bool
 	List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error)
-	CreateOrUpdate(info map[string]interface{}) error
-	GetOrCreate(info map[string]interface{}) error
+	CreateOrUpdate(ctx context.Context, info map[string]interface{}) error
+	GetOrCreate(ctx context.Context, info map[string]interface{}) error
 
-	Update(info map[string]interface{}) error
-	Create(info map[string]interface{}) error
-	Delete(ids []int64) (err error)
+	Update(ctx context.Context, info map[string]interface{}) error
+	Create(ctx context.Context, info map[string]interface{}) error
+	Delete(ctx context.Context, ids []int64) (err error)
 }
 
-func NewUserService(repo repositories.UserRepository) UserService {
-	return &UserServiceImp{repo: repo}
+func NewUserService(repo repositories.UserRepository, store *redis.Store) UserService {
+	return &UserServiceImp{repo: repo, store: store}
 }
 
 type UserServiceImp struct {
-	repo repositories.UserRepository
+	store *redis.Store
+	repo  repositories.UserRepository
+}
+
+func (s *UserServiceImp) Check(ctx context.Context, userId int64) bool {
+	if s.store.IsExist(ctx, string(rune(userId))) {
+		return true
+	}
+	u, err := s.repo.Get(userId)
+	if err == nil && u != nil {
+		s.store.Set(ctx, string(rune(userId)), u.Username, time.Second*60*60*3)
+		return true
+	}
+	return false
 }
 
 func (s *UserServiceImp) List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error) {
@@ -29,20 +47,22 @@ func (s *UserServiceImp) List(q string, page int64, size int64, ordering string,
 	return
 }
 
-func (s *UserServiceImp) Create(info map[string]interface{}) error {
+func (s *UserServiceImp) Create(ctx context.Context, info map[string]interface{}) error {
 	data := models.User{}
 	err := mapstructure.Decode(info, &data)
 	if err != nil {
 		return err
 	}
-	return s.repo.Create(&data)
+	err = s.repo.Create(&data)
+	s.store.Set(ctx, string(rune(data.UserId)), data.Username, time.Second*60*60*3)
+	return err
 }
 
-func (s *UserServiceImp) Update(info map[string]interface{}) error {
-	if info["userID"] == nil {
+func (s *UserServiceImp) Update(ctx context.Context, info map[string]interface{}) error {
+	if info["UserId"] == nil {
 		return nil
 	}
-	userId := info["userID"].(int64)
+	userId := info["UserId"].(int64)
 	t := &models.User{}
 	err := mapstructure.Decode(info, t)
 	if err != nil {
@@ -52,34 +72,24 @@ func (s *UserServiceImp) Update(info map[string]interface{}) error {
 	return s.repo.Update(userId, info)
 }
 
-func (s *UserServiceImp) Delete(ids []int64) (err error) {
+func (s *UserServiceImp) Delete(ctx context.Context, ids []int64) (err error) {
 	return s.repo.Delete(ids)
 }
 
-func (s *UserServiceImp) CreateOrUpdate(info map[string]interface{}) error {
-	userId := info["userID"].(int64)
+func (s *UserServiceImp) CreateOrUpdate(ctx context.Context, info map[string]interface{}) error {
+	userId := info["UserId"].(int64)
 	t, _ := s.repo.Get(userId)
 	if t != nil {
-		return s.Update(info)
+		return s.Update(ctx, info)
 	}
-	t = &models.User{}
-	err := mapstructure.Decode(info, t)
-	if err != nil {
-		return err
-	}
-	return s.repo.Create(t)
+	return s.Create(ctx, info)
 }
 
-func (s *UserServiceImp) GetOrCreate(info map[string]interface{}) error {
-	userId := info["userID"].(int64)
+func (s *UserServiceImp) GetOrCreate(ctx context.Context, info map[string]interface{}) error {
+	userId := info["UserId"].(int64)
 	t, _ := s.repo.Get(userId)
 	if t != nil {
 		return nil
 	}
-	t = &models.User{}
-	err := mapstructure.Decode(info, t)
-	if err != nil {
-		return err
-	}
-	return s.repo.Create(t)
+	return s.Create(ctx, info)
 }

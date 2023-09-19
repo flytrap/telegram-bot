@@ -29,16 +29,20 @@ func BuildInjector() (*Injector, error) {
 	categoryRepository := repositories.NewCategoryRepository(db)
 	categoryService := services.NewCategoryService(categoryRepository)
 	dataService := services.NewDataService(dataInfoRepository, dataTagService, categoryService)
-	coreClient, err := InitStore()
+	coreClient, err := InitIndex()
 	if err != nil {
 		return nil, err
 	}
 	indexMangerService := services.NewIndexMangerService(coreClient, dataService, categoryService)
 	userRepository := repositories.NewUserRepository(db)
-	userService := services.NewUserService(userRepository)
+	store, err := InitStore()
+	if err != nil {
+		return nil, err
+	}
+	userService := services.NewUserService(userRepository, store)
 	adRepository := repositories.NewAdRepository(db)
 	adService := services.NewAdService(adRepository, categoryService)
-	botManager := services.NewBotManager(dataService, indexMangerService, bot, userService, adService)
+	botManager := services.NewBotManager(dataService, indexMangerService, bot, userService, adService, store)
 	tgBotServiceServer := api.NewTgBotApi(dataService, categoryService)
 	adServiceServer := api.NewAdApi(adService)
 	tagServiceServer := api.NewDataTagApi(dataTagService)

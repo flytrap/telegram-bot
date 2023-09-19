@@ -26,10 +26,10 @@ func (s *UserApi) ListUser(ctx context.Context, req *pb.QueryRequest) (*pb.Query
 	return &pb.QueryUserResp{Ret: &pb.RetInfo{Status: true}, Data: results, Total: n}, nil
 }
 
-func (s *UserApi) CreateUse(ctx context.Context, req *pb.BotUser) (*pb.RetInfo, error) {
+func (s *UserApi) CreateUser(ctx context.Context, req *pb.BotUser) (*pb.RetInfo, error) {
 	info := map[string]interface{}{}
 	mapstructure.Decode(&req, info)
-	err := s.userService.Create(info)
+	err := s.userService.Create(ctx, info)
 	if err != nil {
 		return &pb.RetInfo{Status: false, Msg: err.Error()}, err
 	}
@@ -39,7 +39,7 @@ func (s *UserApi) CreateUse(ctx context.Context, req *pb.BotUser) (*pb.RetInfo, 
 func (s *UserApi) UpdateUser(ctx context.Context, req *pb.BotUser) (*pb.RetInfo, error) {
 	info := map[string]interface{}{}
 	mapstructure.Decode(&req, info)
-	err := s.userService.Update(info)
+	err := s.userService.Update(ctx, info)
 	if err != nil {
 		return &pb.RetInfo{Status: false, Msg: err.Error()}, err
 	}
@@ -47,7 +47,7 @@ func (s *UserApi) UpdateUser(ctx context.Context, req *pb.BotUser) (*pb.RetInfo,
 }
 
 func (s *UserApi) DeleteUser(ctx context.Context, req *pb.DeleteIds) (*pb.RetInfo, error) {
-	err := s.userService.Delete(req.Ids)
+	err := s.userService.Delete(ctx, req.Ids)
 	if err != nil {
 		return &pb.RetInfo{Status: false, Msg: err.Error()}, err
 	}

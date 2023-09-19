@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/flytrap/telegram-bot/pkg/redis"
+	"github.com/jinzhu/copier"
 	"github.com/redis/rueidis"
 	"github.com/sirupsen/logrus"
 )
@@ -41,7 +43,7 @@ func SetIndex(s string) Option {
 	}
 }
 
-func InitStore() (rueidis.CoreClient, error) {
+func InitIndex() (rueidis.CoreClient, error) {
 	client, err := rueidis.NewClient(rueidis.ClientOption{InitAddress: []string{config.C.Redis.Addr}, Password: config.C.Redis.Password})
 	if err != nil {
 		logrus.Warning(err)
@@ -49,6 +51,14 @@ func InitStore() (rueidis.CoreClient, error) {
 	}
 
 	return client, nil
+}
+
+func InitStore() (*redis.Store, error) {
+	cfg := config.C.Redis
+	c := redis.Config{}
+	copier.Copy(&c, cfg)
+	store := redis.NewStore(&c)
+	return store, nil
 }
 
 func RunIndex(ctx context.Context, opts ...Option) error {
@@ -82,7 +92,7 @@ func RunIndex(ctx context.Context, opts ...Option) error {
 	if o.UpdateDb > 0 {
 		injector.BotManager.UpdateGroupInfo(o.UpdateDb)
 	} else {
-		go injector.BotManager.Start()
+		go injector.BotManager.Start(ctx)
 		return injector.GrpcServer.Run()
 	}
 	return nil

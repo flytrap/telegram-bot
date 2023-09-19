@@ -12,17 +12,18 @@ import (
 	"github.com/flytrap/telegram-bot/internal/config"
 	"github.com/flytrap/telegram-bot/internal/middleware"
 	"github.com/flytrap/telegram-bot/pkg/human"
+	"github.com/flytrap/telegram-bot/pkg/redis"
 	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
 
 type BotManager interface {
-	Start()                // 启动机器人
-	UpdateGroupInfo(int64) // 更新群组数据
+	Start(ctx context.Context) // 启动机器人
+	UpdateGroupInfo(int64)     // 更新群组数据
 }
 
-func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot, userService UserService, adService AdService) BotManager {
-	return &BotManagerImp{dataService: dataService, IndexManager: im, userService: userService, Bot: bot, adService: adService}
+func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot, userService UserService, adService AdService, store *redis.Store) BotManager {
+	return &BotManagerImp{dataService: dataService, IndexManager: im, userService: userService, Bot: bot, adService: adService, store: store}
 }
 
 type BotManagerImp struct {
@@ -31,11 +32,17 @@ type BotManagerImp struct {
 	userService  UserService
 	adService    AdService
 	Bot          *tele.Bot
+	store        *redis.Store
 }
 
-func (s *BotManagerImp) Start() {
+func (s *BotManagerImp) Start(ctx context.Context) {
 	s.Bot.Use(middleware.Logger(func(user map[string]interface{}) error {
-		return s.userService.GetOrCreate(user)
+		if s.userService.Check(ctx, user["UserId"].(int64)) {
+			return nil
+		}
+		return s.userService.GetOrCreate(ctx, user)
+	}, func(userId int64, q string) error {
+		return s.store.Xadd(ctx, "query:user", map[string]string{"user_id": q})
 	}))
 	s.registerRoute()
 	logrus.Info("启动bot")
