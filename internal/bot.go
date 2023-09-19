@@ -44,6 +44,7 @@ func InitBot() (*tele.Bot, error) {
 	}
 
 	b.Handle("/start", sendMenu)
+	b.Handle("/chinese", sendMenu)
 
 	return b, nil
 }

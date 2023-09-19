@@ -112,7 +112,7 @@ func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category s
 	if len(category) > 0 {
 		q = fmt.Sprintf("@category:%s %s", category, q)
 	}
-	resp, err := s.Query(ctx, q, page*size, size)
+	resp, err := s.Query(ctx, q, (page-1)*size, size)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category s
 func (s *IndexSearchOnRedis) Query(ctx context.Context, query string, offset int64, num int64) ([]rueidis.FtSearchDoc, error) {
 	cmd := s.client.B().FtSearch().Index(s.Name).Query(query).Limit().OffsetNum(offset, num).Build()
 	n, resp, err := s.client.Do(ctx, cmd).AsFtSearch()
-	logrus.Info(n)
+	logrus.Info("query: ", query, ";result: ", n)
 	if err != nil {
 		return nil, err
 	}

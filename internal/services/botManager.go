@@ -44,14 +44,14 @@ func (s *BotManagerImp) Start() {
 
 func (s *BotManagerImp) registerRoute() {
 
-	s.Bot.Handle(tele.OnText, s.SearchGroups)
+	s.Bot.Handle(tele.OnText, s.SearchData)
 
 	s.Bot.Handle("/lang", func(c tele.Context) error {
 		return c.Send("Lang!")
 	})
 }
 
-func (s *BotManagerImp) SearchGroups(ctx tele.Context) error {
+func (s *BotManagerImp) SearchData(ctx tele.Context) error {
 	selector := &tele.ReplyMarkup{}
 	tag := ""
 	page := int64(1)
@@ -68,8 +68,6 @@ func (s *BotManagerImp) SearchGroups(ctx tele.Context) error {
 	} else {
 		tag = ctx.Message().Text
 	}
-	lang := ctx.Sender().LanguageCode
-	logrus.Info(lang)
 
 	items, hasNext, err := s.QueryItems(context.Background(), tag, page, 15)
 	if err != nil {
@@ -80,13 +78,13 @@ func (s *BotManagerImp) SearchGroups(ctx tele.Context) error {
 	var btnNext tele.Btn
 	if page > 1 {
 		btnPrev = selector.Data("⬅ prev", "prev", tag, fmt.Sprint(page-1))
-		s.Bot.Handle(&btnPrev, s.SearchGroups)
+		s.Bot.Handle(&btnPrev, s.SearchData)
 	}
 	if hasNext {
 		btnNext = selector.Data("next ➡", "next", tag, fmt.Sprint(page+1))
 	}
 	selector.Inline(selector.Row(btnPrev, btnNext))
-	s.Bot.Handle(&btnNext, s.SearchGroups)
+	s.Bot.Handle(&btnNext, s.SearchData)
 	ctx.EditOrSend(strings.Join(items, "\n"), tele.ModeMarkdown, selector)
 	return nil
 }
