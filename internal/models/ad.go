@@ -12,7 +12,7 @@ type Ad struct {
 
 	Keyword  string    `json:"keyword" gorm:"size:64;comment:关键词"`
 	Global   int8      `json:"global" gorm:"default:0;comment:全局词条,0非全局"`
-	IsShowAd bool      `json:"is_show_ad" gorm:"default:false;comment:是否显示广告字样"`
+	AdTag    string    `json:"ad_tag" gorm:"size:16;comment:是否显示广告字样"`
 	Expire   time.Time `json:"expire" gorm:"comment:过期时间"`
 	Category string    `json:"category" gorm:"size:64;comment:分类"`
 	Language string    `json:"language" gorm:"size:32;comment:语言"`
@@ -25,5 +25,5 @@ type Ad struct {
 
 func (item *Ad) ToMap() map[string]interface{} {
 	return map[string]interface{}{"id": item.ID, "type": item.Type, "code": item.Code, "global": item.Global, "category_id": item.Category,
-		"language": item.Language, "desc": item.Desc, "num": item.Number, "name": item.Name, "keyword": item.Keyword, "is_show_ad": item.IsShowAd}
+		"language": item.Language, "desc": item.Desc, "num": item.Number, "name": item.Name, "keyword": item.Keyword, "ad_tag": item.AdTag}
 }

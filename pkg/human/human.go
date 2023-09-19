@@ -4,7 +4,7 @@ import "fmt"
 
 func HumanSize(num int64) string {
 	if num == 0 {
-		return "unknow"
+		return "View"
 	}
 	if num >= 1000000000 {
 		return fmt.Sprintf("%.2fb", float32(num/1000000000))

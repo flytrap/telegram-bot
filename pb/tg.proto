@@ -59,7 +59,7 @@ message Ad {
     int64 id = 1;
     string keyword = 2;
     int32 global = 3;
-    bool isShowAd = 4;
+    string adTag = 4;
     string expire = 5;
     string category = 6;
     string language = 7;
@@ -101,7 +101,7 @@ message DataSearchRequest {
 message AdFilter {
     string q = 1;
     int32 global = 2;
-    bool isShowAd = 3;
+    string adTag = 3;
     bool filterExpire = 4;
     int32 type = 5;
     uint32 number = 6;

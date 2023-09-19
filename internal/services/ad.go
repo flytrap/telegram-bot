@@ -11,7 +11,7 @@ import (
 )
 
 type AdService interface {
-	KeywordAd(keyword string) (map[string]interface{}, error)
+	KeywordAd(keyword string) (*models.Ad, error)
 	List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error)
 	Update(id uint, info map[string]interface{}) error
 	Create(info map[string]interface{}) error
@@ -19,7 +19,7 @@ type AdService interface {
 }
 
 func NewAdService(repo repositories.AdRepository, categoryService CategoryService) AdService {
-	res := AdServiceImp{repo: repo, categoryService: categoryService, keywordMap: map[string]map[string]interface{}{}, globalList: []map[string]interface{}{}}
+	res := AdServiceImp{repo: repo, categoryService: categoryService, keywordMap: map[string]*models.Ad{}, globalList: []*models.Ad{}}
 	return &res
 }
 
@@ -27,8 +27,8 @@ type AdServiceImp struct {
 	repo            repositories.AdRepository
 	categoryService CategoryService
 	isLoad          bool
-	keywordMap      map[string]map[string]interface{}
-	globalList      []map[string]interface{}
+	keywordMap      map[string]*models.Ad
+	globalList      []*models.Ad
 }
 
 func (s *AdServiceImp) List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error) {
@@ -66,19 +66,18 @@ func (s *AdServiceImp) Load() error {
 		return err
 	}
 	for _, item := range results {
-		info := item.ToMap()
 		if len(item.Keyword) > 0 {
-			s.keywordMap[item.Keyword] = info
+			s.keywordMap[item.Keyword] = &item
 		}
 		if item.Global != 0 {
-			s.globalList = append(s.globalList, info)
+			s.globalList = append(s.globalList, &item)
 		}
 	}
 	s.isLoad = true
 	return nil
 }
 
-func (s *AdServiceImp) KeywordAd(keyword string) (map[string]interface{}, error) {
+func (s *AdServiceImp) KeywordAd(keyword string) (*models.Ad, error) {
 	item, ok := s.keywordMap[keyword]
 	if ok {
 		return item, nil

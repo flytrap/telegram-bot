@@ -117,10 +117,10 @@ func (s *BotManagerImp) loadAd(keyword string) string {
 		return ""
 	}
 	showAd := ""
-	if item["is_show_ad"].(bool) {
-		showAd = "[广告] "
+	if len(item.AdTag) > 0 {
+		showAd = fmt.Sprintf("[%s] ", item.AdTag)
 	}
-	return fmt.Sprintf("%s[%s](%s)", showAd, item["name"], human.TgGroupUrl(item["code"].(string)))
+	return fmt.Sprintf("%s[%s](%s)", showAd, item.Name, human.TgGroupUrl(item.Code))
 }
 
 func (s *BotManagerImp) QueryDbItems(text string, page int64, size int64) ([]string, error) {
