@@ -1,6 +1,9 @@
 package human
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func HumanSize(num int64) string {
 	if num == 0 {
@@ -22,6 +25,8 @@ func TgGroupItemInfo(index int, code string, tp int, name string, num int64) str
 		_tp = "📢"
 	}
 	n := HumanSize(num)
+	name = strings.ReplaceAll(name, "[", "【")
+	name = strings.ReplaceAll(name, "]", "】")
 	return fmt.Sprintf("%d、 %s [%s - %s](%s)", index, _tp, name, n, TgGroupUrl(code))
 }
 

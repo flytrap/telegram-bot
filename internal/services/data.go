@@ -5,7 +5,6 @@ import (
 
 	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/flytrap/telegram-bot/internal/repositories"
-	"github.com/flytrap/telegram-bot/internal/serializers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -15,7 +14,7 @@ func NewDataService(repo repositories.DataInfoRepository, tagService DataTagServ
 
 type DataService interface {
 	List(q string, category string, language string, page int64, size int64, ordering string, data interface{}) (int64, error)
-	SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error)
+	SearchTag(tag string, page int64, size int64, data interface{}) (total int64, err error)
 	GetNeedUpdateCode(days int, page int64, size int64) ([]string, error)
 	Update(code string, tid int64, name string, desc string, num uint32, weight int, lang string, category uint) error
 	Delete(codes []string) (err error)
@@ -50,16 +49,9 @@ func (s *DataInfoServiceImp) List(q string, category string, language string, pa
 	return n, nil
 }
 
-func (s *DataInfoServiceImp) SearchTag(tag string, page int64, size int64) (data []*serializers.DataSerializer, err error) {
-	res, err := s.repo.QueryTag(tag, (page-1)*size, size)
-	data = []*serializers.DataSerializer{}
-	for _, item := range res {
-		data = append(data, &serializers.DataSerializer{Code: item.Code, Name: item.Name, Number: int64(item.Number)})
-	}
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func (s *DataInfoServiceImp) SearchTag(tag string, page int64, size int64, data interface{}) (total int64, err error) {
+	total, err = s.repo.QueryTag(tag, (page-1)*size, size, data)
+	return total, err
 }
 
 func (s *DataInfoServiceImp) GetNeedUpdateCode(days int, page int64, size int64) ([]string, error) {

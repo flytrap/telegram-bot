@@ -69,13 +69,13 @@ func (s *Store) Get(ctx context.Context, key string) interface{} {
 }
 
 func (s *Store) Set(ctx context.Context, key string, v interface{}, expiration time.Duration) error {
-	cmd := s.cli.Set(ctx, s.wrapperKey(key), v, expiration)
-	return cmd.Err()
+	err := s.cli.Set(ctx, s.wrapperKey(key), v, expiration).Err()
+	return err
 }
 
 func (s *Store) IsExist(ctx context.Context, key string) bool {
-	cmd := s.cli.Exists(ctx, s.wrapperKey(key))
-	return cmd.Err() == nil
+	n, err := s.cli.Exists(ctx, s.wrapperKey(key)).Result()
+	return err == nil && n > 0
 }
 
 func (s *Store) Delete(ctx context.Context, key string) error {
@@ -84,12 +84,13 @@ func (s *Store) Delete(ctx context.Context, key string) error {
 }
 
 func (s *Store) Check(ctx context.Context, key string) (bool, error) {
-	cmd := s.cli.Exists(ctx, s.wrapperKey(key))
-	if err := cmd.Err(); err != nil {
+	n, err := s.cli.Exists(ctx, s.wrapperKey(key)).Result()
+	if err != nil {
 		return false, err
 	}
-	return cmd.Val() > 0, nil
+	return n > 0, nil
 }
+
 func (s *Store) ZAdd(ctx context.Context, key string, members ...redis.Z) (bool, error) {
 	cmd := s.cli.ZAdd(ctx, s.wrapperKey(key), members...)
 	if err := cmd.Err(); err != nil {

@@ -21,7 +21,7 @@ type IndexMangerService interface {
 	DeleteAllIndex(ctx context.Context)                                                // 清除索引信息
 	AddItems(ctx context.Context, indexName string, data map[string]interface{}) error // 添加词条
 	RemoveItem(ctx context.Context, indexName string, key string) error                // 删除词条
-	Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) ([]map[string]interface{}, error)
+	Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error)
 }
 
 func NewIndexMangerService(client rueidis.CoreClient, dataService DataService, categoryService CategoryService) IndexMangerService {
@@ -68,10 +68,10 @@ func (s *IndexMangerServiceImp) RemoveItem(ctx context.Context, indexName string
 	return index.DeleteItem(ctx, key)
 }
 
-func (s *IndexMangerServiceImp) Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) ([]map[string]interface{}, error) {
+func (s *IndexMangerServiceImp) Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error) {
 	index, ok := s.indexes[indexName]
 	if !ok {
-		return nil, errors.New("index not found")
+		return 0, nil, errors.New("index not found")
 	}
 	return index.Search(ctx, text, category, page, size)
 }

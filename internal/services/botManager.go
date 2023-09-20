@@ -11,6 +11,7 @@ import (
 
 	"github.com/flytrap/telegram-bot/internal/config"
 	"github.com/flytrap/telegram-bot/internal/middleware"
+	"github.com/flytrap/telegram-bot/internal/serializers"
 	"github.com/flytrap/telegram-bot/pkg/human"
 	"github.com/flytrap/telegram-bot/pkg/redis"
 	"github.com/sirupsen/logrus"
@@ -92,23 +93,25 @@ func (s *BotManagerImp) SearchData(ctx tele.Context) error {
 	}
 	selector.Inline(selector.Row(btnPrev, btnNext))
 	s.Bot.Handle(&btnNext, s.SearchData)
-	ctx.EditOrSend(strings.Join(items, "\n"), tele.ModeMarkdown, selector)
-	return nil
+	result := strings.Join(items, "\n")
+	err = ctx.EditOrSend(result, tele.ModeMarkdown, selector)
+	return err
 }
 
 func (s *BotManagerImp) QueryItems(ctx context.Context, text string, page int64, size int64) (items []string, hasNext bool, err error) {
 	if page >= config.C.Bot.MaxPage {
 		page = config.C.Bot.MaxPage // 阻止过多翻页
 	}
+	var n int64
 	if config.C.Bot.UseCache {
-		items, err = s.QueryCacheItems(ctx, "chinese", text, "", page, config.C.Bot.PageSize)
+		n, items, err = s.QueryCacheItems(ctx, "chinese", text, "", page, config.C.Bot.PageSize)
 	} else {
-		items, err = s.QueryDbItems(text, page, config.C.Bot.PageSize)
+		n, items, err = s.QueryDbItems(text, page, config.C.Bot.PageSize)
 	}
 	if err != nil {
 		return nil, false, err
 	}
-	hasNext = int64(len(items)) == size
+	hasNext = (page-1)*size+int64(len(items)) < n
 	ad := s.loadAd(text)
 	if len(ad) > 0 {
 		items = append([]string{ad, ""}, items...) // 增加广告
@@ -128,29 +131,30 @@ func (s *BotManagerImp) loadAd(keyword string) string {
 	return fmt.Sprintf("%s[%s](%s)", showAd, item.Name, human.TgGroupUrl(item.Code))
 }
 
-func (s *BotManagerImp) QueryDbItems(text string, page int64, size int64) ([]string, error) {
-	data, err := s.dataService.SearchTag(text, page, 15)
+func (s *BotManagerImp) QueryDbItems(text string, page int64, size int64) (int64, []string, error) {
+	data := []*serializers.DataSerializer{}
+	n, err := s.dataService.SearchTag(text, page, 15, &data)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	items := []string{}
 	for i, item := range data {
 		items = append(items, item.ItemInfo(i+1))
 	}
-	return items, nil
+	return n, items, nil
 }
 
-func (s *BotManagerImp) QueryCacheItems(ctx context.Context, name string, text string, category string, page int64, size int64) ([]string, error) {
+func (s *BotManagerImp) QueryCacheItems(ctx context.Context, name string, text string, category string, page int64, size int64) (int64, []string, error) {
 	index := s.IndexManager.IndexName(name)
-	data, err := s.IndexManager.Query(ctx, index, text, category, page, size)
+	n, data, err := s.IndexManager.Query(ctx, index, text, category, page, size)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	items := []string{}
 	for i, item := range data {
 		items = append(items, human.TgGroupItemInfo(int(page-1)*int(size)+i+1, item["code"].(string), int(item["type"].(float64)), item["name"].(string), int64(item["number"].(float64))))
 	}
-	return items, nil
+	return n, items, nil
 }
 
 func (s *BotManagerImp) UpdateGroupInfo(num int64) {

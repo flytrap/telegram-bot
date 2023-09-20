@@ -1,6 +1,8 @@
 package serializers
 
 import (
+	"strings"
+
 	"github.com/flytrap/telegram-bot/pkg/human"
 )
 
@@ -12,7 +14,10 @@ type DataSerializer struct {
 }
 
 func (s *DataSerializer) ItemInfo(i int) string {
-	return human.TgGroupItemInfo(i, s.Code, int(s.Type), s.Name, s.Number)
+	name := strings.ReplaceAll(s.Name, "[", "|")
+	name = strings.ReplaceAll(name, "]", "|")
+	name = strings.ReplaceAll(name, "@", "__")
+	return human.TgGroupItemInfo(i, s.Code, int(s.Type), name, s.Number)
 }
 
 func (s *DataSerializer) Url() string {

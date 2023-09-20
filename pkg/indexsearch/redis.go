@@ -107,14 +107,14 @@ func (s *IndexSearchOnRedis) Delete(ctx context.Context) error {
 }
 
 // 搜索
-func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category string, page int64, size int64) ([]map[string]interface{}, error) {
+func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error) {
 	q := text
 	if len(category) > 0 {
 		q = fmt.Sprintf("@category:%s %s", category, q)
 	}
-	resp, err := s.Query(ctx, q, (page-1)*size, size)
+	n, resp, err := s.Query(ctx, q, (page-1)*size, size)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	results := []map[string]interface{}{}
 	for _, item := range resp {
@@ -126,15 +126,15 @@ func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category s
 		results = append(results, res)
 	}
 
-	return results, nil
+	return n, results, nil
 }
 
-func (s *IndexSearchOnRedis) Query(ctx context.Context, query string, offset int64, num int64) ([]rueidis.FtSearchDoc, error) {
+func (s *IndexSearchOnRedis) Query(ctx context.Context, query string, offset int64, num int64) (int64, []rueidis.FtSearchDoc, error) {
 	cmd := s.client.B().FtSearch().Index(s.Name).Query(query).Limit().OffsetNum(offset, num).Build()
 	n, resp, err := s.client.Do(ctx, cmd).AsFtSearch()
 	logrus.Info("query: ", query, ";result: ", n)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
-	return resp, nil
+	return n, resp, nil
 }

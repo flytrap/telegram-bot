@@ -12,7 +12,7 @@ type DataInfoRepository interface {
 	Get(code string) (*models.DataInfo, error)
 	List(q string, category uint, language string, offset int64, limit int64, ordering string, data interface{}) (int64, error)
 	GetNeedUpdate(days int, offset int64, limit int64) (data []*models.DataInfo, err error)
-	QueryTag(tag string, offset int64, limit int64) ([]*models.DataInfo, error)
+	QueryTag(tag string, offset int64, limit int64, data interface{}) (int64, error)
 
 	Create(*models.DataInfo) error
 	Update(code string, info map[string]interface{}) (err error)
@@ -55,9 +55,13 @@ func (s *DataInfoRepositoryImp) List(q string, category uint, language string, o
 	return n, nil
 }
 
-func (s *DataInfoRepositoryImp) QueryTag(tag string, offset int64, limit int64) (data []*models.DataInfo, err error) {
-	q := s.Db.Model(&models.DataInfo{}).Select("tg_group.name", "tg_group.tid", "tg_group.code", "tg_group.type", "tg_group.number").Joins("inner JOIN tg_group_tag on tg_group_tag.group_id=tg_group.id").Joins("LEFT JOIN tg_tag on tg_tag.id=tg_group_tag.tag_id").Where("tg_tag.name = ?", tag).Preload("Tags").Limit(int(limit)).Offset(int(offset)).Order("number desc").Find(&data)
-	return data, q.Error
+func (s *DataInfoRepositoryImp) QueryTag(tag string, offset int64, limit int64, data interface{}) (n int64, err error) {
+	qs := s.Db.Model(&models.DataInfo{}).Select("tg_data_info.name", "tg_data_info.tid", "tg_data_info.code", "tg_data_info.type", "tg_data_info.number").Joins("inner JOIN tg_data_tag on tg_data_tag.data_info_id=tg_data_info.id").Joins("LEFT JOIN tg_tag on tg_tag.id=tg_data_tag.tag_id").Where("tg_tag.name = ?", tag).Preload("Tags").Limit(int(limit)).Offset(int(offset)).Order("number desc")
+	if err = qs.Find(data).Error; err != nil {
+		return 0, nil
+	}
+	qs.Count(&n)
+	return n, nil
 }
 
 func (s *DataInfoRepositoryImp) GetNeedUpdate(days int, offset int64, limit int64) (data []*models.DataInfo, err error) {
