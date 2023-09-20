@@ -32,7 +32,7 @@ var LanguageMap = map[string]string{
 
 func NewRedisSearch(client *rueidis.CoreClient, index string, language string, prefix string) IndexSearch {
 	return &IndexSearchOnRedis{client: *client, Name: index, Prefix: prefix, Language: language, Score: 1, ScoreField: "weight",
-		IndexInfo: IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Body: 0.5}}
+		IndexInfo: IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: 0.5}}
 }
 
 type IndexField struct {
@@ -48,7 +48,7 @@ type IndexInfo struct {
 	Category float64 // 分类(string, tag)
 	Code     float64 // 数据代号(string, tag)
 	Type     float64 // 数据类型(int, num)
-	Body     float64 // 详细内容(string)
+	Desc     float64 // 详细内容(string)
 }
 
 type IndexSearchOnRedis struct {
@@ -74,7 +74,7 @@ func (s *IndexSearchOnRedis) Init(ctx context.Context) error {
 	}
 	// cmd := s.client.B().FtCreate().Index(s.Name).OnJson().Prefix(1).Prefix(s.Prefix).Language(s.Language).Score(float64(s.Score)).ScoreField(s.ScoreField).Nohl()
 	cmd := s.client.B().FtCreate().Index(s.Name).OnJson().Prefix(1).Prefix(s.Prefix).Language(s.Language).Nohl()
-	build := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$category").As("category").Tag().FieldName("$code").As("code").Tag().FieldName("$type").As("type").Numeric().FieldName("$body").As("body").Text().Weight(s.IndexInfo.Body).Build()
+	build := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$category").As("category").Tag().FieldName("$code").As("code").Tag().FieldName("$type").As("type").Numeric().FieldName("$desc").As("desc").Text().Weight(s.IndexInfo.Desc).Build()
 
 	err = s.client.Do(ctx, build).Error()
 	return err

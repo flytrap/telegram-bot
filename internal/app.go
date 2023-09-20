@@ -54,9 +54,8 @@ func InitIndex() (rueidis.CoreClient, error) {
 }
 
 func InitStore() (*redis.Store, error) {
-	cfg := config.C.Redis
 	c := redis.Config{}
-	copier.Copy(&c, cfg)
+	copier.Copy(&c, config.C.Redis)
 	store := redis.NewStore(&c)
 	return store, nil
 }

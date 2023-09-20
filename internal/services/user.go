@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/flytrap/telegram-bot/internal/models"
@@ -31,12 +32,13 @@ type UserServiceImp struct {
 }
 
 func (s *UserServiceImp) Check(ctx context.Context, userId int64) bool {
-	if s.store.IsExist(ctx, string(rune(userId))) {
+	key := fmt.Sprintf("user:%d", userId)
+	if s.store.IsExist(ctx, key) {
 		return true
 	}
 	u, err := s.repo.Get(userId)
 	if err == nil && u != nil {
-		s.store.Set(ctx, string(rune(userId)), u.Username, time.Second*60*60*3)
+		s.store.Set(ctx, key, u.Username, time.Second*60*60*3)
 		return true
 	}
 	return false
@@ -54,7 +56,7 @@ func (s *UserServiceImp) Create(ctx context.Context, info map[string]interface{}
 		return err
 	}
 	err = s.repo.Create(&data)
-	s.store.Set(ctx, string(rune(data.UserId)), data.Username, time.Second*60*60*3)
+	s.store.Set(ctx, fmt.Sprintf("user:%d", data.UserId), data.Username, time.Second*60*60*3)
 	return err
 }
 
