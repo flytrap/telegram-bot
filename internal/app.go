@@ -44,7 +44,7 @@ func SetIndex(s string) Option {
 }
 
 func InitIndex() (rueidis.CoreClient, error) {
-	client, err := rueidis.NewClient(rueidis.ClientOption{InitAddress: []string{config.C.Redis.Addr}, Password: config.C.Redis.Password})
+	client, err := rueidis.NewClient(rueidis.ClientOption{InitAddress: []string{config.C.Redis.Addr}, Password: config.C.Redis.Password, SelectDB: config.C.Redis.DB})
 	if err != nil {
 		logrus.Warning(err)
 		return nil, err
