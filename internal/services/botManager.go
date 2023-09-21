@@ -42,8 +42,8 @@ func (s *BotManagerImp) Start(ctx context.Context) {
 			return nil
 		}
 		return s.userService.GetOrCreate(ctx, user)
-	}, func(userId int64, q string) error {
-		return s.store.Xadd(ctx, "log:query", map[string]interface{}{"user_id": userId, "content": q, "type": "tg-query"})
+	}, func(userId int64, username string, q string) error {
+		return s.store.Xadd(ctx, "log:query", map[string]interface{}{"user_id": userId, "content": q, "type": "tg-query", "username": username})
 	}))
 	s.registerRoute()
 	logrus.Info("启动bot")

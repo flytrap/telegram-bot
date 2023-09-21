@@ -6,7 +6,7 @@ import (
 )
 
 type HandlerUserFunc func(map[string]interface{}) error
-type HandlerUserQueryFunc func(int64, string) error
+type HandlerUserQueryFunc func(int64, string, string) error
 
 // Logger returns a middleware that logs incoming updates.
 // If no custom logger provided, log.Default() will be used.
@@ -20,7 +20,7 @@ func Logger(userFunc HandlerUserFunc, userQueryFunc HandlerUserQueryFunc) tele.M
 			if c.Update().Message == nil && c.Update().Callback != nil {
 				q = c.Update().Callback.Data
 			}
-			go userQueryFunc(user.ID, q)
+			go userQueryFunc(user.ID, user.Username, q)
 			logUser(user, q)
 			return next(c)
 		}
