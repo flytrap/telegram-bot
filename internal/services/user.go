@@ -65,11 +65,6 @@ func (s *UserServiceImp) Update(ctx context.Context, info map[string]interface{}
 		return nil
 	}
 	userId := info["UserId"].(int64)
-	t := &models.User{}
-	err := mapstructure.Decode(info, t)
-	if err != nil {
-		return err
-	}
 
 	return s.repo.Update(userId, info)
 }
