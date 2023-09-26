@@ -22,7 +22,8 @@
                 "index",
                 "-c",
                 "${workspaceRoot}/config/config.json"
-            ]
+            ],
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "index grpc",

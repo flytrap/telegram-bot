@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/flytrap/telegram-bot/internal/config"
@@ -17,7 +18,11 @@ var (
 )
 
 func InitBot() (*tele.Bot, error) {
-	if len(config.C.Bot.Token) < 10 {
+	token := config.C.Bot.Token
+	if len(token) < 5 {
+		token = os.Getenv("BotToken")
+	}
+	if len(token) < 10 {
 		logrus.Warning("tg token not config")
 		return nil, nil
 	}
@@ -32,7 +37,7 @@ func InitBot() (*tele.Bot, error) {
 	}
 
 	pref := tele.Settings{
-		Token:  config.C.Bot.Token, //  os.Getenv("TOKEN"),
+		Token:  token, //  os.Getenv("TOKEN"),
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
 		Client: &c,
 	}
