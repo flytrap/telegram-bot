@@ -75,6 +75,7 @@ type Bot struct {
 	Languages []string   `json:"languages" mapstructure:"languages"` // 启动的语言
 	PageSize  int64      `json:"page_size" mapstructure:"page_size"` // 搜索单页大小
 	MaxPage   int64      `json:"max_page" mapstructure:"max_page"`   // 最大页码
+	Manager   BotManager `json:"manager" mapstructure:"manager"`     // 管理信息
 }
 
 type Proxy struct {
@@ -93,4 +94,10 @@ type Gorm struct {
 	TablePrefix       string `json:"table_prefix" mapstructure:"table_prefix"`
 	EnableAutoMigrate bool   `json:"enable_auto_migrate" mapstructure:"enable_auto_migrate"`
 	Dsn               string `json:"dsn" mapstructure:"dsn"`
+}
+
+type BotManager struct {
+	UserId      int64  `json:"user_id" mapstructure:"user_id"`
+	Username    string `json:"username" mapstructure:"username"`
+	DeleteDelay int    `json:"delete_delay" mapstructure:"delete_delay"`
 }

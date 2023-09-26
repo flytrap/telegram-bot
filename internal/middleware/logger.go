@@ -14,13 +14,17 @@ func Logger(userFunc HandlerUserFunc, userQueryFunc HandlerUserQueryFunc) tele.M
 	return func(next tele.HandlerFunc) tele.HandlerFunc {
 		return func(c tele.Context) error {
 			user := c.Sender()
-			go userFunc(map[string]interface{}{"username": user.Username, "UserId": user.ID, "firstName": user.FirstName, "LastName": user.LastName,
-				"LanguageCode": user.LanguageCode, "IsBot": user.IsBot, "IsPremium": user.IsPremium})
+			if userFunc != nil {
+				go userFunc(map[string]interface{}{"username": user.Username, "UserId": user.ID, "firstName": user.FirstName, "LastName": user.LastName,
+					"LanguageCode": user.LanguageCode, "IsBot": user.IsBot, "IsPremium": user.IsPremium})
+			}
 			q := c.Text()
 			if c.Update().Message == nil && c.Update().Callback != nil {
 				q = c.Update().Callback.Data
 			}
-			go userQueryFunc(user.ID, user.Username, q)
+			if userQueryFunc != nil {
+				go userQueryFunc(user.ID, user.Username, q)
+			}
 			logUser(user, q)
 			return next(c)
 		}

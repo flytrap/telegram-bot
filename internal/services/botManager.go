@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 
@@ -19,8 +18,9 @@ import (
 )
 
 type BotManager interface {
-	Start(ctx context.Context) // 启动机器人
-	UpdateGroupInfo(int64)     // 更新群组数据
+	Start(ctx context.Context)                                                // 启动机器人
+	UpdateGroupInfo(int64)                                                    // 更新群组数据
+	QueryItems(context.Context, string, int64, int64) ([]string, bool, error) // 搜素信息
 }
 
 func NewBotManager(dataService DataService, im IndexMangerService, bot *tele.Bot, userService UserService, adService AdService, store *redis.Store) BotManager {
@@ -52,50 +52,11 @@ func (s *BotManagerImp) Start(ctx context.Context) {
 
 func (s *BotManagerImp) registerRoute() {
 
-	s.Bot.Handle(tele.OnText, s.SearchData)
+	// s.Bot.Handle(tele.OnText,  )
 
 	s.Bot.Handle("/lang", func(c tele.Context) error {
 		return c.Send("Lang!")
 	})
-}
-
-func (s *BotManagerImp) SearchData(ctx tele.Context) error {
-	selector := &tele.ReplyMarkup{}
-	tag := ""
-	page := int64(1)
-	cb := ctx.Callback()
-	if cb != nil {
-		info := cb.Data
-		tag = strings.Split(info, "|")[0]
-		n, err := strconv.Atoi(strings.Split(info, "|")[1])
-		if err != nil {
-			logrus.Warn(err)
-		} else {
-			page = int64(n)
-		}
-	} else {
-		tag = ctx.Message().Text
-	}
-
-	items, hasNext, err := s.QueryItems(context.Background(), tag, page, 15)
-	if err != nil {
-		logrus.Warning(err)
-		return err
-	}
-	var btnPrev tele.Btn
-	var btnNext tele.Btn
-	if page > 1 {
-		btnPrev = selector.Data("⬅ prev", "prev", tag, fmt.Sprint(page-1))
-		s.Bot.Handle(&btnPrev, s.SearchData)
-	}
-	if hasNext {
-		btnNext = selector.Data("next ➡", "next", tag, fmt.Sprint(page+1))
-	}
-	selector.Inline(selector.Row(btnPrev, btnNext))
-	s.Bot.Handle(&btnNext, s.SearchData)
-	result := strings.Join(items, "\n")
-	err = ctx.EditOrSend(result, tele.ModeMarkdown, selector)
-	return err
 }
 
 func (s *BotManagerImp) QueryItems(ctx context.Context, text string, page int64, size int64) (items []string, hasNext bool, err error) {

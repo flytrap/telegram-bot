@@ -5,6 +5,7 @@ package app
 
 import (
 	"github.com/flytrap/telegram-bot/internal/api"
+	"github.com/flytrap/telegram-bot/internal/handlers"
 	"github.com/flytrap/telegram-bot/internal/repositories"
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/google/wire"
@@ -17,6 +18,7 @@ func BuildInjector() (*Injector, error) {
 		InitStore,
 		InitGormDB,
 		repositories.RepositorySet,
+		handlers.HandlerSet,
 		InitGrpcServer,
 		// InitGateway,
 		services.ServiceSet,

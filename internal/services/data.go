@@ -8,10 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewDataService(repo repositories.DataInfoRepository, tagService DataTagService, categoryService CategoryService) DataService {
-	return &DataInfoServiceImp{repo: repo, tagService: tagService, categoryService: categoryService}
-}
-
 type DataService interface {
 	List(q string, category string, language string, page int64, size int64, ordering string, data interface{}) (int64, error)
 	SearchTag(tag string, page int64, size int64, data interface{}) (total int64, err error)
@@ -20,6 +16,10 @@ type DataService interface {
 	Delete(codes []string) (err error)
 
 	UpdateOrCreate(code string, tid int64, name string, desc string, num uint32, tags []string, category string, lang string) error
+}
+
+func NewDataService(repo repositories.DataInfoRepository, tagService DataTagService, categoryService CategoryService) DataService {
+	return &DataInfoServiceImp{repo: repo, tagService: tagService, categoryService: categoryService}
 }
 
 type DataInfoServiceImp struct {

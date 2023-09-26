@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -60,10 +61,26 @@ func (s *Store) wrapperKey(key string) string {
 	return fmt.Sprintf("%s:%s", s.prefix, key)
 }
 
+func (s *Store) RawKey(key string) string {
+	li := strings.Split(key, s.prefix+":")
+	if len(li) == 0 {
+		return ""
+	}
+	return li[len(li)-1]
+}
+
+func (s *Store) Keys(ctx context.Context, key string) []string {
+	result, err := s.cli.Keys(ctx, s.wrapperKey(key)).Result()
+	if err != nil {
+		return nil
+	}
+	return result
+}
+
 func (s *Store) Get(ctx context.Context, key string) interface{} {
 	result, err := s.cli.Get(ctx, s.wrapperKey(key)).Result()
 	if err != nil {
-		return ""
+		return nil
 	}
 	return result
 }
