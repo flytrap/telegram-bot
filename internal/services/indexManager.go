@@ -25,28 +25,28 @@ type IndexMangerService interface {
 }
 
 func NewIndexMangerService(client rueidis.CoreClient, dataService DataService, categoryService CategoryService) IndexMangerService {
-	i := IndexMangerServiceImp{Client: client, dataService: dataService, categoryService: categoryService, indexes: map[string]indexsearch.IndexSearch{}}
+	i := indexMangerServiceImp{Client: client, dataService: dataService, categoryService: categoryService, indexes: map[string]indexsearch.IndexSearch{}}
 	return &i
 }
 
-type IndexMangerServiceImp struct {
+type indexMangerServiceImp struct {
 	Client          rueidis.CoreClient
 	dataService     DataService
 	categoryService CategoryService
 	indexes         map[string]indexsearch.IndexSearch
 }
 
-func (s *IndexMangerServiceImp) IndexName(key string) string {
+func (s *indexMangerServiceImp) IndexName(key string) string {
 	return fmt.Sprintf("index:%s", key)
 }
 
-func (s *IndexMangerServiceImp) addIndex(ctx context.Context, indexName string, language string, prefix string) error {
+func (s *indexMangerServiceImp) addIndex(ctx context.Context, indexName string, language string, prefix string) error {
 	index := indexsearch.NewRedisSearch(&s.Client, indexName, language, fmt.Sprintf("%s:%s", prefix, language))
 	s.indexes[indexName] = index
 	return index.Init(ctx)
 }
 
-func (s *IndexMangerServiceImp) AddItems(ctx context.Context, indexName string, data map[string]interface{}) error {
+func (s *indexMangerServiceImp) AddItems(ctx context.Context, indexName string, data map[string]interface{}) error {
 	index, ok := s.indexes[indexName]
 	if !ok {
 		return errors.New("index not found")
@@ -60,7 +60,7 @@ func (s *IndexMangerServiceImp) AddItems(ctx context.Context, indexName string, 
 	return nil
 }
 
-func (s *IndexMangerServiceImp) RemoveItem(ctx context.Context, indexName string, key string) error {
+func (s *indexMangerServiceImp) RemoveItem(ctx context.Context, indexName string, key string) error {
 	index, ok := s.indexes[indexName]
 	if !ok {
 		return errors.New("index not found")
@@ -68,7 +68,7 @@ func (s *IndexMangerServiceImp) RemoveItem(ctx context.Context, indexName string
 	return index.DeleteItem(ctx, key)
 }
 
-func (s *IndexMangerServiceImp) Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error) {
+func (s *indexMangerServiceImp) Query(ctx context.Context, indexName string, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error) {
 	index, ok := s.indexes[indexName]
 	if !ok {
 		return 0, nil, errors.New("index not found")
@@ -76,7 +76,7 @@ func (s *IndexMangerServiceImp) Query(ctx context.Context, indexName string, tex
 	return index.Search(ctx, text, category, page, size)
 }
 
-func (s *IndexMangerServiceImp) RemoveIndex(ctx context.Context, indexName string) error {
+func (s *indexMangerServiceImp) RemoveIndex(ctx context.Context, indexName string) error {
 	index, ok := s.indexes[indexName]
 	if !ok {
 		return errors.New("index not found")
@@ -85,7 +85,7 @@ func (s *IndexMangerServiceImp) RemoveIndex(ctx context.Context, indexName strin
 }
 
 // 加载数据
-func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, language string) error {
+func (s *indexMangerServiceImp) LoadData(ctx context.Context, indexName string, language string) error {
 	var (
 		wg sync.WaitGroup
 		c  = make(chan map[string]interface{})
@@ -124,6 +124,7 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 					ca, _ := s.categoryService.GetName(uint(id))
 					item.Category = ca
 				}
+				item.Weight += float32(item.Number) / 1000
 				items[item.Code] = item
 			}
 			logrus.Info("read items: ", len(items))
@@ -138,7 +139,7 @@ func (s *IndexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 }
 
 // 初始化索引
-func (s *IndexMangerServiceImp) InitIndex(ctx context.Context) error {
+func (s *indexMangerServiceImp) InitIndex(ctx context.Context) error {
 	logrus.Debug("init index", config.C.Bot.Languages)
 	for _, lang := range config.C.Bot.Languages {
 		name := s.IndexName(lang)
@@ -151,13 +152,13 @@ func (s *IndexMangerServiceImp) InitIndex(ctx context.Context) error {
 	return nil
 }
 
-func (s *IndexMangerServiceImp) DeleteIndex(ctx context.Context, lang string) error {
+func (s *indexMangerServiceImp) DeleteIndex(ctx context.Context, lang string) error {
 	name := s.IndexName(lang)
 	index := indexsearch.NewRedisSearch(&s.Client, name, lang, fmt.Sprintf("%s:%s", config.C.Redis.KeyPrefix, lang))
 	return index.Delete(ctx)
 }
 
-func (s *IndexMangerServiceImp) DeleteAllIndex(ctx context.Context) {
+func (s *indexMangerServiceImp) DeleteAllIndex(ctx context.Context) {
 	for _, lang := range config.C.Bot.Languages {
 		s.DeleteIndex(ctx, lang)
 		logrus.Info("delete index :" + lang)

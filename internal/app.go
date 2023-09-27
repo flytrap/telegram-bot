@@ -89,11 +89,11 @@ func RunIndex(ctx context.Context, opts ...Option) error {
 	}
 
 	if o.UpdateDb > 0 {
-		injector.BotManager.UpdateGroupInfo(o.UpdateDb)
+		injector.HandlerManager.UpdateGroupInfo(o.UpdateDb)
 	} else {
 		go injector.HandlerManager.CheckDeleteMessage(ctx)
 		injector.HandlerManager.RegisterRoute()
-		go injector.BotManager.Start(ctx)
+		go injector.HandlerManager.Start(ctx)
 		return injector.GrpcServer.Run()
 	}
 	return nil

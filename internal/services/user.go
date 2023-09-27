@@ -23,15 +23,15 @@ type UserService interface {
 }
 
 func NewUserService(repo repositories.UserRepository, store *redis.Store) UserService {
-	return &UserServiceImp{repo: repo, store: store}
+	return &userServiceImp{repo: repo, store: store}
 }
 
-type UserServiceImp struct {
+type userServiceImp struct {
 	store *redis.Store
 	repo  repositories.UserRepository
 }
 
-func (s *UserServiceImp) Check(ctx context.Context, userId int64) bool {
+func (s *userServiceImp) Check(ctx context.Context, userId int64) bool {
 	key := fmt.Sprintf("user:%d", userId)
 	if s.store.IsExist(ctx, key) {
 		return true
@@ -44,12 +44,12 @@ func (s *UserServiceImp) Check(ctx context.Context, userId int64) bool {
 	return false
 }
 
-func (s *UserServiceImp) List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error) {
+func (s *userServiceImp) List(q string, page int64, size int64, ordering string, data interface{}) (n int64, err error) {
 	n, err = s.repo.List(q, (page-1)*size, size, ordering, data)
 	return
 }
 
-func (s *UserServiceImp) Create(ctx context.Context, info map[string]interface{}) error {
+func (s *userServiceImp) Create(ctx context.Context, info map[string]interface{}) error {
 	data := models.User{}
 	err := mapstructure.Decode(info, &data)
 	if err != nil {
@@ -60,7 +60,7 @@ func (s *UserServiceImp) Create(ctx context.Context, info map[string]interface{}
 	return err
 }
 
-func (s *UserServiceImp) Update(ctx context.Context, info map[string]interface{}) error {
+func (s *userServiceImp) Update(ctx context.Context, info map[string]interface{}) error {
 	if info["UserId"] == nil {
 		return nil
 	}
@@ -69,11 +69,11 @@ func (s *UserServiceImp) Update(ctx context.Context, info map[string]interface{}
 	return s.repo.Update(userId, info)
 }
 
-func (s *UserServiceImp) Delete(ctx context.Context, ids []int64) (err error) {
+func (s *userServiceImp) Delete(ctx context.Context, ids []int64) (err error) {
 	return s.repo.Delete(ids)
 }
 
-func (s *UserServiceImp) CreateOrUpdate(ctx context.Context, info map[string]interface{}) error {
+func (s *userServiceImp) CreateOrUpdate(ctx context.Context, info map[string]interface{}) error {
 	userId := info["UserId"].(int64)
 	t, _ := s.repo.Get(userId)
 	if t != nil {
@@ -82,7 +82,7 @@ func (s *UserServiceImp) CreateOrUpdate(ctx context.Context, info map[string]int
 	return s.Create(ctx, info)
 }
 
-func (s *UserServiceImp) GetOrCreate(ctx context.Context, info map[string]interface{}) error {
+func (s *userServiceImp) GetOrCreate(ctx context.Context, info map[string]interface{}) error {
 	userId := info["UserId"].(int64)
 	t, _ := s.repo.Get(userId)
 	if t != nil {

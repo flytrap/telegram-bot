@@ -1,37 +1,34 @@
 package middleware
 
 import (
+	"context"
+
 	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
 
-type HandlerUserFunc func(map[string]interface{}) error
-type HandlerUserQueryFunc func(int64, string, string) error
-
 // Logger returns a middleware that logs incoming updates.
 // If no custom logger provided, log.Default() will be used.
-func Logger(userFunc HandlerUserFunc, userQueryFunc HandlerUserQueryFunc) tele.MiddlewareFunc {
+func (s *middleWareManagerImp) Logger() tele.MiddlewareFunc {
 	return func(next tele.HandlerFunc) tele.HandlerFunc {
 		return func(c tele.Context) error {
 			user := c.Sender()
-			if userFunc != nil {
-				go userFunc(map[string]interface{}{"username": user.Username, "UserId": user.ID, "firstName": user.FirstName, "LastName": user.LastName,
-					"LanguageCode": user.LanguageCode, "IsBot": user.IsBot, "IsPremium": user.IsPremium})
-			}
 			q := c.Text()
 			if c.Update().Message == nil && c.Update().Callback != nil {
 				q = c.Update().Callback.Data
 			}
-			if userQueryFunc != nil {
-				go userQueryFunc(user.ID, user.Username, q)
-			}
-			logUser(user, q)
+			s.logUser(user, q)
 			return next(c)
 		}
 	}
 }
 
-func logUser(u *tele.User, text string) error {
-	logrus.Println(u.ID, u.Username, text)
-	return nil
+func (s *middleWareManagerImp) logUser(user *tele.User, text string) error {
+	ctx := context.Background()
+	if !s.userService.Check(ctx, user.ID) {
+		s.userService.GetOrCreate(ctx, map[string]interface{}{"username": user.Username, "UserId": user.ID, "firstName": user.FirstName, "LastName": user.LastName,
+			"LanguageCode": user.LanguageCode, "IsBot": user.IsBot, "IsPremium": user.IsPremium})
+	}
+	logrus.Println(user.ID, user.Username, text)
+	return s.store.Xadd(ctx, "log:query", map[string]interface{}{"user_id": user.ID, "content": text, "type": "tg-query", "username": user.Username})
 }

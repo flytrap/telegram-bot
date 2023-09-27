@@ -30,7 +30,7 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 		tag = ctx.Message().Text
 	}
 
-	items, hasNext, err := s.bm.QueryItems(context.Background(), tag, page, 15)
+	items, hasNext, err := s.ss.QueryItems(context.Background(), tag, page, 15)
 	if err != nil {
 		logrus.Warning(err)
 		return err
@@ -47,5 +47,8 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	selector.Inline(selector.Row(btnPrev, btnNext))
 	ctx.Bot().Handle(&btnNext, s.IndexHandler)
 	result := strings.Join(items, "\n")
-	return ctx.EditOrSend(result, tele.ModeMarkdown, selector)
+	if len(result) == 0 {
+		return ctx.Reply("关键词未找到")
+	}
+	return ctx.EditOrReply(result, tele.ModeMarkdown, selector)
 }

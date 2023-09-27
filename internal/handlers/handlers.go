@@ -3,28 +3,40 @@ package handlers
 import (
 	"context"
 
+	"github.com/flytrap/telegram-bot/internal/middleware"
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pkg/redis"
 	"github.com/google/wire"
+	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
 
 var HandlerSet = wire.NewSet(NewHandlerManager)
 
 type HandlerManager interface {
-	RegisterRoute() error
-	CheckDeleteMessage(ctx context.Context)
+	Start(ctx context.Context)              // 启动机器人
+	RegisterRoute() error                   // 注册路由
+	CheckDeleteMessage(ctx context.Context) // 检查需要删除的消息
+	UpdateGroupInfo(int64) error            // 更新群组数据
 }
 
-func NewHandlerManager(bot *tele.Bot, store *redis.Store, bm services.BotManager, gs services.GroupSettingSerivce) HandlerManager {
-	return &HandlerManagerImp{Bot: bot, store: store, bm: bm, gs: gs}
+func NewHandlerManager(bot *tele.Bot, store *redis.Store, ss services.SearchService, gs services.GroupSettingSerivce, dataService services.DataService, m middleware.MiddleWareManager) HandlerManager {
+	return &HandlerManagerImp{Bot: bot, store: store, ss: ss, gs: gs, dataService: dataService, m: m}
 }
 
 type HandlerManagerImp struct {
-	Bot   *tele.Bot
-	store *redis.Store
-	bm    services.BotManager
-	gs    services.GroupSettingSerivce
+	Bot         *tele.Bot
+	store       *redis.Store
+	dataService services.DataService
+	ss          services.SearchService
+	gs          services.GroupSettingSerivce
+	m           middleware.MiddleWareManager
+}
+
+func (s *HandlerManagerImp) Start(ctx context.Context) {
+	s.Bot.Use(s.m.Logger())
+	logrus.Info("启动bot")
+	s.Bot.Start()
 }
 
 func (s *HandlerManagerImp) RegisterRoute() error {

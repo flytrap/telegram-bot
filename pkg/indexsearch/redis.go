@@ -74,7 +74,7 @@ func (s *IndexSearchOnRedis) Init(ctx context.Context) error {
 	}
 	// cmd := s.client.B().FtCreate().Index(s.Name).OnJson().Prefix(1).Prefix(s.Prefix).Language(s.Language).Score(float64(s.Score)).ScoreField(s.ScoreField).Nohl()
 	cmd := s.client.B().FtCreate().Index(s.Name).OnJson().Prefix(1).Prefix(s.Prefix).Language(s.Language).Nohl()
-	build := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$category").As("category").Tag().FieldName("$code").As("code").Tag().FieldName("$type").As("type").Numeric().FieldName("$desc").As("desc").Text().Weight(s.IndexInfo.Desc).Build()
+	build := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$category").As("category").Tag().FieldName("$code").As("code").Tag().FieldName("$type").As("type").Numeric().FieldName("$number").As("number").Numeric().Sortable().FieldName("$weight").As("weight").Numeric().Sortable().FieldName("$desc").As("desc").Text().Weight(s.IndexInfo.Desc).Build()
 
 	err = s.client.Do(ctx, build).Error()
 	return err
@@ -130,7 +130,7 @@ func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category s
 }
 
 func (s *IndexSearchOnRedis) Query(ctx context.Context, query string, offset int64, num int64) (int64, []rueidis.FtSearchDoc, error) {
-	cmd := s.client.B().FtSearch().Index(s.Name).Query(query).Limit().OffsetNum(offset, num).Build()
+	cmd := s.client.B().FtSearch().Index(s.Name).Query(query).Sortby("weight").Desc().Limit().OffsetNum(offset, num).Build()
 	n, resp, err := s.client.Do(ctx, cmd).AsFtSearch()
 	logrus.Info("query: ", query, ";result: ", n)
 	if err != nil {
