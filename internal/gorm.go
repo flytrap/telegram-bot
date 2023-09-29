@@ -60,7 +60,7 @@ func NewGormDB() (*gorm.DB, error) {
 	case "postgres":
 		dialector = postgres.Open(cfg.Dsn)
 	default:
-		dialector = sqlite.Open(cfg.Dsn)
+		dialector = sqlite.Open(cfg.DbName)
 	}
 
 	db, err := gorm.Open(dialector, gConfig)

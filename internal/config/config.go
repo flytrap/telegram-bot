@@ -69,7 +69,6 @@ type Bot struct {
 	AppId     string     `json:"app_id" mapstructure:"app_id"`
 	ApiHash   string     `json:"api_hash" mapstructure:"api_hash"`
 	Token     string     `json:"token" mapstructure:"token"`         // 机器人token
-	Start     string     `json:"start" mapstructure:"start"`         // 初始化提示语
 	Menus     [][]string `json:"menus" mapstructure:"menus"`         // 菜单配置
 	UseCache  bool       `json:"use_cache" mapstructure:"use_cache"` // 使用缓存
 	Languages []string   `json:"languages" mapstructure:"languages"` // 启动的语言

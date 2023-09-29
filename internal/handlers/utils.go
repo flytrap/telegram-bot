@@ -54,7 +54,7 @@ func getName(user *tele.User) string {
 	return "神秘人"
 }
 
-func (s *HandlerManagerImp) removetVerifyStatus(ChatId int64, userId int64) error {
+func (s *HandlerManagerImp) removeVerifyStatus(ChatId int64, userId int64) error {
 	chat := tele.Chat{ID: ChatId}
 	m, err := s.Bot.ChatMemberOf(&chat, &tele.User{ID: userId})
 	if err != nil {

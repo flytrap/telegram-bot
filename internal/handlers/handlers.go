@@ -20,7 +20,7 @@ type HandlerManager interface {
 	UpdateGroupInfo(int64) error            // 更新群组数据
 }
 
-func NewHandlerManager(bot *tele.Bot, store *redis.Store, ss services.SearchService, gs services.GroupSettingSerivce, dataService services.DataService, m middleware.MiddleWareManager) HandlerManager {
+func NewHandlerManager(bot *tele.Bot, store *redis.Store, ss services.SearchService, gs services.GroupSettingService, dataService services.DataService, m middleware.MiddleWareManager) HandlerManager {
 	return &HandlerManagerImp{Bot: bot, store: store, ss: ss, gs: gs, dataService: dataService, m: m}
 }
 
@@ -29,7 +29,7 @@ type HandlerManagerImp struct {
 	store       *redis.Store
 	dataService services.DataService
 	ss          services.SearchService
-	gs          services.GroupSettingSerivce
+	gs          services.GroupSettingService
 	m           middleware.MiddleWareManager
 }
 
@@ -47,6 +47,7 @@ func (s *HandlerManagerImp) RegisterRoute() error {
 	s.Bot.Handle("/help", s.HelpHandler)
 	s.Bot.Handle("/del", s.DelMessageHandler)
 	s.Bot.Handle("/pin", s.PinMessageHandler)
+	s.Bot.Handle("/start", s.StartHandler)
 	s.Bot.Handle(tele.OnText, s.IndexHandler)
 	return nil
 }

@@ -13,10 +13,6 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-var (
-	menu = &tele.ReplyMarkup{ResizeKeyboard: true}
-)
-
 func InitBot() (*tele.Bot, error) {
 	token := config.C.Bot.Token
 	if len(token) < 5 {
@@ -26,7 +22,6 @@ func InitBot() (*tele.Bot, error) {
 		logrus.Warning("tg token not config")
 		return nil, nil
 	}
-	initMenu() // 初始化菜单项
 	c := http.Client{}
 	if len(config.C.Proxy.Protocal) > 0 { //设置代理
 		proxyURL, err := url.Parse(fmt.Sprintf("%s://%s:%d", config.C.Proxy.Protocal, config.C.Proxy.Ip, config.C.Proxy.Port))
@@ -48,24 +43,8 @@ func InitBot() (*tele.Bot, error) {
 		return nil, err
 	}
 
-	b.Handle("/start", sendMenu)
-	b.Handle("/chinese", sendMenu)
+	// b.Handle("/start", sendMenu)
+	// b.Handle("/chinese", sendMenu)
 
 	return b, nil
-}
-
-func initMenu() {
-	items := []tele.Row{}
-	for _, item := range config.C.Bot.Menus {
-		subItem := []tele.Btn{}
-		for _, su := range item {
-			subItem = append(subItem, menu.Text(su))
-		}
-		items = append(items, menu.Row(subItem...))
-	}
-	menu.Reply(items...)
-}
-
-func sendMenu(c tele.Context) error {
-	return c.Send(config.C.Bot.Start, menu, tele.ModeMarkdown)
 }

@@ -19,13 +19,15 @@ var welcomeTemplate = "本BOT代表本群所有人热烈欢迎新成员: {{.name
 // 新用户加入群组
 func (s *HandlerManagerImp) JoinInHandler(ctx tele.Context) error {
 	ctx.Delete()
+	if menu == nil {
+		initMenu()
+	}
 	if ctx.Chat().Type != tele.ChatGroup && ctx.Chat().Type != tele.ChatSuperGroup {
-		return s.sendAutoDeleteMessage(ctx, AfterDelTime(), "请将本机器人加入您的群中再使用此命令")
+		return s.sendAutoDeleteMessage(ctx, AfterDelTime(), "请将本机器人加入您的群中再使用此命令", menu)
 	}
 
 	gs, _ := s.gs.GetSetting(context.Background(), ctx.Chat().Username)
 	if gs.NotRobot.IsOpen {
-		s.welcomePayload(ctx, gs)
 		return s.verifyPayload(ctx, gs)
 	} else {
 		return s.welcomePayload(ctx, gs)
@@ -70,13 +72,14 @@ func (s *HandlerManagerImp) verifyPayload(ctx tele.Context, gs *serializers.Grou
 				return err
 			}
 			if c.Sender().ID == i || isAdmin(ctx) {
-				return s.removetVerifyStatus(ctx.Chat().ID, c.Sender().ID)
+				s.removeVerifyStatus(ctx.Chat().ID, c.Sender().ID)
+				return s.welcomePayload(ctx, gs)
 			}
 			return nil
 		})
-		return s.sendAutoDeleteUser(ctx, time.Second*time.Duration(timeout), text, selector)
+		return s.sendAutoDeleteUser(ctx, time.Second*time.Duration(timeout), text, selector, menu)
 	} else {
-		return s.sendAutoDeleteMessage(ctx, AfterDelTime(), "本机器人打开了进群验证功能，但是没有管理员权限，无法禁用用户\n")
+		return s.sendAutoDeleteMessage(ctx, AfterDelTime(), "本机器人打开了进群验证功能，但是没有管理员权限，无法禁用用户\n", menu)
 	}
 }
 
@@ -103,7 +106,7 @@ func (s *HandlerManagerImp) welcomePayload(ctx tele.Context, gs *serializers.Gro
 	if len(gs.Welcome.Template) > 0 {
 		tp = gs.Welcome.Template
 	}
-	result, err := template.New("welecome").Parse(tp)
+	result, err := template.New("welcome").Parse(tp)
 	if err != nil {
 		return err
 	}
@@ -115,7 +118,7 @@ func (s *HandlerManagerImp) welcomePayload(ctx tele.Context, gs *serializers.Gro
 	text := ""
 	if gs.Welcome.KillMe > 0 {
 		text = fmt.Sprintf("本消息将在%d秒后自毁\n", gs.Welcome.KillMe)
-		return s.sendAutoDeleteMessage(ctx, time.Duration(gs.Welcome.KillMe)*time.Second, text+out.String())
+		return s.sendAutoDeleteMessage(ctx, time.Duration(gs.Welcome.KillMe)*time.Second, text+out.String(), menu)
 	}
-	return ctx.Send(text + out.String())
+	return ctx.Send(text+out.String(), menu)
 }

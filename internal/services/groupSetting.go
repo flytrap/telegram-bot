@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type GroupSettingSerivce interface {
+type GroupSettingService interface {
 	GetSetting(ctx context.Context, code string) (*serializers.GroupSetting, error)
 	SetWelcome(ctx context.Context, code string, item serializers.Welcome) error
 	SetNotRobot(ctx context.Context, code string, item serializers.NotRobot) error
@@ -22,7 +22,7 @@ type GroupSettingSerivce interface {
 	Init(ctx context.Context, code string) error
 }
 
-func NewGroupSettingService(repo repositories.GroupSettingRepository, store *redis.Store) GroupSettingSerivce {
+func NewGroupSettingService(repo repositories.GroupSettingRepository, store *redis.Store) GroupSettingService {
 	return &groupSettingServiceImp{repo: repo, store: store}
 }
 
@@ -42,7 +42,7 @@ func (s *groupSettingServiceImp) GetSetting(ctx context.Context, code string) (*
 		return nil, err
 	}
 	result := serializers.GroupSetting{NotRobot: serializers.NotRobot{IsOpen: gs.NotRobot, Timeout: gs.RobotTimeout},
-		Welcome: serializers.Welcome{IsOpen: gs.Welcome, Desc: gs.WelcomeDesc, Pinned: gs.WelcomePinned, Template: gs.WelcomeTemplate, KillMe: gs.WelcomeKillme},
+		Welcome: serializers.Welcome{IsOpen: gs.Welcome, Desc: gs.WelcomeDesc, Pinned: gs.WelcomePinned, Template: gs.WelcomeTemplate, KillMe: gs.WelcomeKillMe},
 	}
 	return &result, s.setCache(ctx, code, &result)
 }
@@ -67,7 +67,7 @@ func (s *groupSettingServiceImp) Init(ctx context.Context, code string) error {
 	gs, _ := s.repo.Get(code)
 	if gs != nil {
 		result := serializers.GroupSetting{NotRobot: serializers.NotRobot{IsOpen: gs.NotRobot, Timeout: gs.RobotTimeout},
-			Welcome: serializers.Welcome{IsOpen: gs.Welcome, Desc: gs.WelcomeDesc, Pinned: gs.WelcomePinned, Template: gs.WelcomeTemplate, KillMe: gs.WelcomeKillme},
+			Welcome: serializers.Welcome{IsOpen: gs.Welcome, Desc: gs.WelcomeDesc, Pinned: gs.WelcomePinned, Template: gs.WelcomeTemplate, KillMe: gs.WelcomeKillMe},
 		}
 		return s.setCache(ctx, code, &result)
 	}
@@ -87,7 +87,7 @@ func (s *groupSettingServiceImp) SetWelcome(ctx context.Context, code string, in
 		logrus.Warning(err)
 		return err
 	}
-	data := map[string]interface{}{"welcome": info.IsOpen, "welcome_desc": info.Desc, "welcome_pinned": info.Pinned, "welcome_killme": info.KillMe, "welcome_template": info.Template}
+	data := map[string]interface{}{"welcome": info.IsOpen, "welcome_desc": info.Desc, "welcome_pinned": info.Pinned, "welcome_kill_me": info.KillMe, "welcome_template": info.Template}
 	return s.repo.Update(code, data)
 }
 
@@ -107,7 +107,7 @@ func (s *groupSettingServiceImp) SetNotRobot(ctx context.Context, code string, i
 }
 
 func (s *groupSettingServiceImp) setCache(ctx context.Context, code string, info *serializers.GroupSetting) error {
-	key := fmt.Sprintf("groupsetting:%s", code)
+	key := fmt.Sprintf("groupSetting:%s", code)
 	res, err := json.Marshal(info)
 	if err != nil {
 		logrus.Warning(err)
@@ -117,14 +117,10 @@ func (s *groupSettingServiceImp) setCache(ctx context.Context, code string, info
 }
 
 func (s *groupSettingServiceImp) getCache(ctx context.Context, code string) (info *serializers.GroupSetting, err error) {
-	key := fmt.Sprintf("groupsetting:%s", code)
+	key := fmt.Sprintf("groupSetting:%s", code)
 	res := s.store.Get(ctx, key)
 	if res != nil {
 		err = json.Unmarshal([]byte(res.(string)), &info)
 	}
 	return
 }
-
-// func (s *groupSettingServiceImp) clearCache(ctx context.Context, code string) error {
-// 	return s.store.Delete(ctx, fmt.Sprintf("groupsetting:%s", code))
-// }
