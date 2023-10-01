@@ -13,7 +13,7 @@
   "redis": {
     "addr": "127.0.0.1:6379",
     "password": "123456",
-    "db": 1,
+    "db": 0,
     "key_prefix": "tg:group"
   },
   "bot": {
@@ -40,7 +40,7 @@
   "gorm": {
     "debug": true,
     "db_type": "sqlite",
-    "db_name": "tg-bot.sqlite3",
+    "db_name": "config/tg-bot.sqlite3",
     "max_lifetime": 7200,
     "max_open_conns": 150,
     "max_idle_conns": 50,

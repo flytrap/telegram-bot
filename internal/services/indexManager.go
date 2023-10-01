@@ -124,7 +124,7 @@ func (s *indexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 					ca, _ := s.categoryService.GetName(uint(id))
 					item.Category = ca
 				}
-				item.Weight += float32(item.Number) / 1000
+				item.Weight += float32(item.Number) / 10000
 				items[item.Code] = item
 			}
 			logrus.Info("read items: ", len(items))

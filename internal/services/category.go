@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/flytrap/telegram-bot/internal/repositories"
@@ -81,6 +82,10 @@ func (s *CategoryServiceImp) Load() error {
 func (s *CategoryServiceImp) GetName(id uint) (string, error) {
 	name, ok := s.idMap[id]
 	if ok {
+		ns := strings.Split(name, ":")
+		if len(ns) > 1 {
+			name = ns[len(ns)-1]
+		}
 		return name, nil
 	}
 	return "", errors.New("not found")

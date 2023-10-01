@@ -42,9 +42,5 @@ func InitBot() (*tele.Bot, error) {
 		log.Fatal(err)
 		return nil, err
 	}
-
-	// b.Handle("/start", sendMenu)
-	// b.Handle("/chinese", sendMenu)
-
 	return b, nil
 }
