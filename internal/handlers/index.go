@@ -33,7 +33,7 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	items, hasNext, err := s.ss.QueryItems(context.Background(), tag, page, 15)
 	if err != nil {
 		logrus.Warning(err)
-		return err
+		return ctx.Reply("关键词未找到")
 	}
 	var btnPrev tele.Btn
 	var btnNext tele.Btn

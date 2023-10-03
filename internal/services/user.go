@@ -3,12 +3,14 @@ package services
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/flytrap/telegram-bot/internal/repositories"
 	"github.com/flytrap/telegram-bot/pkg/redis"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 )
 
 type UserService interface {
@@ -20,6 +22,7 @@ type UserService interface {
 	Update(ctx context.Context, info map[string]interface{}) error
 	Create(ctx context.Context, info map[string]interface{}) error
 	Delete(ctx context.Context, ids []int64) (err error)
+	AddWarning(ctx context.Context, userId int64) error
 }
 
 func NewUserService(repo repositories.UserRepository, store *redis.Store) UserService {
@@ -38,7 +41,7 @@ func (s *userServiceImp) Check(ctx context.Context, userId int64) bool {
 	}
 	u, err := s.repo.Get(userId)
 	if err == nil && u != nil {
-		s.store.Set(ctx, key, u.Username, time.Second*60*60*3)
+		s.store.Set(ctx, key, u.WarningNum, time.Second*60*60*3)
 		return true
 	}
 	return false
@@ -56,7 +59,7 @@ func (s *userServiceImp) Create(ctx context.Context, info map[string]interface{}
 		return err
 	}
 	err = s.repo.Create(&data)
-	s.store.Set(ctx, fmt.Sprintf("user:%d", data.UserId), data.Username, time.Second*60*60*3)
+	s.store.Set(ctx, fmt.Sprintf("user:%d", data.UserId), data.WarningNum, time.Second*60*60*3)
 	return err
 }
 
@@ -89,4 +92,20 @@ func (s *userServiceImp) GetOrCreate(ctx context.Context, info map[string]interf
 		return nil
 	}
 	return s.Create(ctx, info)
+}
+
+func (s *userServiceImp) AddWarning(ctx context.Context, userId int64) error {
+	s.Check(ctx, userId)
+	n := s.store.Get(ctx, fmt.Sprintf("user:%d", userId))
+	num := int64(0)
+	if n != nil {
+		i, err := strconv.ParseInt(n.(string), 10, 64)
+		if err != nil {
+			logrus.Warning(err)
+		}
+		num = i
+	}
+	num += 1
+	s.store.Set(ctx, fmt.Sprintf("user:%d", userId), num, time.Second*60*60*3)
+	return s.Update(ctx, map[string]interface{}{"UserId": userId, "WarningNum": num})
 }

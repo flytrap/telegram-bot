@@ -92,10 +92,28 @@ func RunIndex(ctx context.Context, opts ...Option) error {
 		injector.HandlerManager.UpdateGroupInfo(o.UpdateDb)
 	} else {
 		go injector.HandlerManager.CheckDeleteMessage(ctx)
-		injector.HandlerManager.RegisterRoute()
-		go injector.HandlerManager.Start(ctx)
-		return injector.GrpcServer.Run()
+		go injector.GrpcServer.Run()
+		injector.HandlerManager.Start(ctx, true)
 	}
+	return nil
+}
+
+func RunManager(ctx context.Context, opts ...Option) error {
+	initLogger()
+	var o options
+	for _, opt := range opts {
+		opt(&o)
+	}
+	config.MustLoad(o.ConfigFile)
+	config.PrintWithJSON()
+
+	injector, err := BuildInjector()
+	if err != nil {
+		return err
+	}
+
+	go injector.HandlerManager.CheckDeleteMessage(ctx)
+	injector.HandlerManager.Start(ctx, false)
 	return nil
 }
 

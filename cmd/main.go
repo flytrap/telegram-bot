@@ -18,7 +18,7 @@ func main() {
 	app.Version = VERSION
 	app.Usage = "telegram-bot based on GRPC + WIRE."
 	app.Commands = []*cli.Command{
-		newIndexCmd(ctx), newGrpcCmd(ctx),
+		newIndexCmd(ctx), newGrpcCmd(ctx), newManagerCmd(ctx),
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -58,6 +58,27 @@ func newIndexCmd(ctx context.Context) *cli.Command {
 				app.SetVersion(VERSION),
 				app.SetUpdateDb(c.Int64("update")),
 				app.SetIndex(c.String("index")),
+			)
+		},
+	}
+}
+
+func newManagerCmd(ctx context.Context) *cli.Command {
+	return &cli.Command{
+		Name:  "manager",
+		Usage: "Run tg-bot manager server",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "conf",
+				Aliases:  []string{"c"},
+				Required: true,
+				Usage:    "指定启动配置文件(.json,.yaml,.toml)",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			return app.RunManager(ctx,
+				app.SetConfigFile(c.String("conf")),
+				app.SetVersion(VERSION),
 			)
 		},
 	}

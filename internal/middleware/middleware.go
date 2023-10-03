@@ -11,6 +11,7 @@ var MiddleWareSet = wire.NewSet(NewMiddleWareManager)
 
 type MiddleWareManager interface {
 	Logger() tele.MiddlewareFunc
+	LinkFilter() tele.MiddlewareFunc
 }
 
 func NewMiddleWareManager(us services.UserService, store *redis.Store) MiddleWareManager {

@@ -14,5 +14,6 @@ type User struct {
 	IsBot        bool   `json:"is_bot" gorm:"comment:是否是机器人"`
 	IsPremium    bool   `json:"is_premium" gorm:"comment:是否是会员"`
 	// 配置信息
-	Lang string `json:"lang" gorm:"size:32;comment:语言"`
+	Lang       string `json:"lang" gorm:"size:32;comment:语言"`
+	WarningNum int64  `json:"warning_num" gorm:"comment:警告次数"`
 }

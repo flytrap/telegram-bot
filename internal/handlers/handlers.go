@@ -14,10 +14,10 @@ import (
 var HandlerSet = wire.NewSet(NewHandlerManager)
 
 type HandlerManager interface {
-	Start(ctx context.Context)              // 启动机器人
-	RegisterRoute() error                   // 注册路由
-	CheckDeleteMessage(ctx context.Context) // 检查需要删除的消息
-	UpdateGroupInfo(int64) error            // 更新群组数据
+	Start(ctx context.Context, openIndex bool) // 启动机器人
+	registerRoute(bool) error                  // 注册路由
+	CheckDeleteMessage(ctx context.Context)    // 检查需要删除的消息
+	UpdateGroupInfo(int64) error               // 更新群组数据
 }
 
 func NewHandlerManager(bot *tele.Bot, store *redis.Store, ss services.SearchService, gs services.GroupSettingService, dataService services.DataService, m middleware.MiddleWareManager) HandlerManager {
@@ -33,13 +33,15 @@ type HandlerManagerImp struct {
 	m           middleware.MiddleWareManager
 }
 
-func (s *HandlerManagerImp) Start(ctx context.Context) {
+func (s *HandlerManagerImp) Start(ctx context.Context, openIndex bool) {
+	s.Bot.Use(s.m.LinkFilter())
 	s.Bot.Use(s.m.Logger())
 	logrus.Info("启动bot")
+	s.registerRoute(openIndex)
 	s.Bot.Start()
 }
 
-func (s *HandlerManagerImp) RegisterRoute() error {
+func (s *HandlerManagerImp) registerRoute(openIndex bool) error {
 	s.Bot.Handle(tele.OnAddedToGroup, s.InitHandler)
 	s.Bot.Handle(tele.OnUserJoined, s.JoinInHandler)
 	s.Bot.Handle(tele.OnUserLeft, s.AutoDeleteInHandler)
@@ -48,6 +50,8 @@ func (s *HandlerManagerImp) RegisterRoute() error {
 	s.Bot.Handle("/del", s.DelMessageHandler)
 	s.Bot.Handle("/pin", s.PinMessageHandler)
 	s.Bot.Handle("/start", s.StartHandler)
-	s.Bot.Handle(tele.OnText, s.IndexHandler)
+	if openIndex {
+		s.Bot.Handle(tele.OnText, s.IndexHandler)
+	}
 	return nil
 }

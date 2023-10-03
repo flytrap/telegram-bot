@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/redis/rueidis"
 	"github.com/sirupsen/logrus"
@@ -108,6 +109,7 @@ func (s *IndexSearchOnRedis) Delete(ctx context.Context) error {
 
 // 搜索
 func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error) {
+	text = filterQuery(text) // 过滤特殊字符
 	q := fmt.Sprintf("@category:{%s}|%s", text, text)
 	if len(category) > 0 {
 		q = fmt.Sprintf("@category:{%s} %s", category, q)
@@ -137,4 +139,11 @@ func (s *IndexSearchOnRedis) Query(ctx context.Context, query string, offset int
 		return 0, nil, err
 	}
 	return n, resp, nil
+}
+
+func filterQuery(q string) string {
+	for _, key := range []string{"(", ")", "[", "]", "$", "@", "."} {
+		q = strings.ReplaceAll(q, key, "|")
+	}
+	return strings.ReplaceAll(q, "||", "|")
 }
