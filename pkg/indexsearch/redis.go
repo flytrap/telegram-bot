@@ -110,7 +110,7 @@ func (s *IndexSearchOnRedis) Delete(ctx context.Context) error {
 // 搜索
 func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error) {
 	text = filterQuery(text) // 过滤特殊字符
-	q := fmt.Sprintf("@category:{%s}|%s", text, text)
+	q := fmt.Sprintf("(@category:{%s})|%s", text, text)
 	if len(category) > 0 {
 		q = fmt.Sprintf("@category:{%s} %s", category, q)
 	}
