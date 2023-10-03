@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var VERSION = "0.2.13"
+var VERSION = "0.3.1"
 
 func main() {
 	ctx := context.Background()
