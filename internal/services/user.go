@@ -22,7 +22,7 @@ type UserService interface {
 	Update(ctx context.Context, info map[string]interface{}) error
 	Create(ctx context.Context, info map[string]interface{}) error
 	Delete(ctx context.Context, ids []int64) (err error)
-	AddWarning(ctx context.Context, userId int64) error
+	AddWarning(ctx context.Context, userId int64) int64
 }
 
 func NewUserService(repo repositories.UserRepository, store *redis.Store) UserService {
@@ -94,7 +94,7 @@ func (s *userServiceImp) GetOrCreate(ctx context.Context, info map[string]interf
 	return s.Create(ctx, info)
 }
 
-func (s *userServiceImp) AddWarning(ctx context.Context, userId int64) error {
+func (s *userServiceImp) AddWarning(ctx context.Context, userId int64) int64 {
 	s.Check(ctx, userId)
 	n := s.store.Get(ctx, fmt.Sprintf("user:%d", userId))
 	num := int64(0)
@@ -107,5 +107,9 @@ func (s *userServiceImp) AddWarning(ctx context.Context, userId int64) error {
 	}
 	num += 1
 	s.store.Set(ctx, fmt.Sprintf("user:%d", userId), num, time.Second*60*60*3)
-	return s.Update(ctx, map[string]interface{}{"UserId": userId, "WarningNum": num})
+	err := s.Update(ctx, map[string]interface{}{"UserId": userId, "WarningNum": num})
+	if err != nil {
+		logrus.Warning(err)
+	}
+	return num
 }

@@ -21,7 +21,10 @@ func (s *middleWareManagerImp) LinkFilter() tele.MiddlewareFunc {
 			if checkLink(q) {
 				logrus.Println("delete link", user.ID, user.Username, q)
 				c.Delete()
-				return s.userService.AddWarning(context.Background(), user.ID)
+				i := s.userService.AddWarning(context.Background(), user.ID)
+				if i >= 3 {
+					c.Bot().BanSenderChat(c.Chat(), c.Recipient())
+				}
 			}
 			return next(c)
 		}
