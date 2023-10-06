@@ -2,12 +2,15 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/flytrap/telegram-bot/internal/config"
 	"github.com/flytrap/telegram-bot/pkg/redis"
 	"github.com/jinzhu/copier"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/redis/rueidis"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/text/language"
 )
 
 type options struct {
@@ -58,6 +61,13 @@ func InitStore() (*redis.Store, error) {
 	copier.Copy(&c, config.C.Redis)
 	store := redis.NewStore(&c)
 	return store, nil
+}
+
+func InitBundle() (*i18n.Bundle, error) {
+	bundle := i18n.NewBundle(language.Chinese)
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+	bundle.MustLoadMessageFile("config/zh-CN.json")
+	return bundle, nil
 }
 
 func RunIndex(ctx context.Context, opts ...Option) error {

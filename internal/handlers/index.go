@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
@@ -31,9 +32,11 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	}
 
 	items, hasNext, err := s.ss.QueryItems(context.Background(), tag, page, 15)
+	localize := i18n.NewLocalizer(s.bundle, "zh-CN")
+	keywordNotFound := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "keywordNotFound"})
 	if err != nil {
 		logrus.Warning(err)
-		return ctx.Reply("关键词未找到")
+		return ctx.Reply(keywordNotFound)
 	}
 	var btnPrev tele.Btn
 	var btnNext tele.Btn
@@ -48,7 +51,7 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	ctx.Bot().Handle(&btnNext, s.IndexHandler)
 	result := strings.Join(items, "\n")
 	if len(result) == 0 {
-		return ctx.Reply("关键词未找到")
+		return ctx.Reply(keywordNotFound)
 	}
 	return ctx.EditOrReply(result, tele.ModeMarkdown, selector)
 }

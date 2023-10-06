@@ -1,18 +1,20 @@
 package handlers
 
 import (
-	"time"
-
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	tele "gopkg.in/telebot.v3"
 )
 
 // 消息置顶
 func (s *HandlerManagerImp) PinMessageHandler(ctx tele.Context) error {
+	localize := i18n.NewLocalizer(s.bundle, "zh-CN")
 	if ctx.Chat().Private {
-		return s.sendAutoDeleteMessage(ctx, time.Minute, "请将本机器人加入您的群中再使用此命令")
+		adminJoinTip := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "admin.joinTip"})
+		return s.sendAutoDeleteMessage(ctx, AfterDelTime(), adminJoinTip)
 	}
 	if !isAdmin(ctx) {
-		return s.sendAutoDeleteMessage(ctx, time.Minute, "只有本群管理才可以使用此命令")
+		noPermissionTio := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "admin.noPermissionTio"})
+		return s.sendAutoDeleteMessage(ctx, AfterDelTime(), noPermissionTio)
 	}
 	msg := ctx.Message().ReplyTo
 

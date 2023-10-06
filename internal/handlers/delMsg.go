@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
@@ -8,11 +9,14 @@ import (
 // 消息删除
 func (s *HandlerManagerImp) DelMessageHandler(ctx tele.Context) error {
 	ctx.Delete()
+	localize := i18n.NewLocalizer(s.bundle, "zh-CN")
 	if ctx.Chat().Private {
-		return ctx.Send("请将本机器人加入您的群中再使用此命令")
+		adminJoinTip := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "admin.joinTip"})
+		return s.sendAutoDeleteMessage(ctx, AfterDelTime(), adminJoinTip)
 	}
 	if !isAdmin(ctx) {
-		return ctx.Send("只有本群管理才可以使用此命令")
+		noPermissionTio := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "admin.noPermissionTio"})
+		return s.sendAutoDeleteMessage(ctx, AfterDelTime(), noPermissionTio)
 	}
 	msg := ctx.Message().ReplyTo
 

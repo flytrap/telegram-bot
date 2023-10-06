@@ -14,6 +14,7 @@ import (
 
 func BuildInjector() (*Injector, error) {
 	wire.Build(
+		InitBundle,
 		InitBot,
 		InitIndex,
 		InitStore,

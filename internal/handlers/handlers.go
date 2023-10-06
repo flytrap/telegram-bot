@@ -7,6 +7,7 @@ import (
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pkg/redis"
 	"github.com/google/wire"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
@@ -20,8 +21,8 @@ type HandlerManager interface {
 	UpdateGroupInfo(int64) error               // 更新群组数据
 }
 
-func NewHandlerManager(bot *tele.Bot, store *redis.Store, ss services.SearchService, gs services.GroupSettingService, dataService services.DataService, m middleware.MiddleWareManager) HandlerManager {
-	return &HandlerManagerImp{Bot: bot, store: store, ss: ss, gs: gs, dataService: dataService, m: m}
+func NewHandlerManager(bot *tele.Bot, store *redis.Store, ss services.SearchService, gs services.GroupSettingService, dataService services.DataService, m middleware.MiddleWareManager, bundle *i18n.Bundle) HandlerManager {
+	return &HandlerManagerImp{Bot: bot, store: store, ss: ss, gs: gs, dataService: dataService, m: m, bundle: bundle}
 }
 
 type HandlerManagerImp struct {
@@ -31,6 +32,7 @@ type HandlerManagerImp struct {
 	ss          services.SearchService
 	gs          services.GroupSettingService
 	m           middleware.MiddleWareManager
+	bundle      *i18n.Bundle
 }
 
 func (s *HandlerManagerImp) Start(ctx context.Context, openIndex bool) {

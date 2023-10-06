@@ -52,9 +52,13 @@ func BuildInjector() (*Injector, error) {
 	grpcServer := InitGrpcServer(tgBotServiceServer, adServiceServer, tagServiceServer, categoryServiceServer, userServiceServer)
 	searchService := services.NewSearchService(dataService, indexMangerService, adService)
 	groupSettingRepository := repositories.NewGroupSettingRepository(db)
-	groupSettingSerivce := services.NewGroupSettingService(groupSettingRepository, store)
+	groupSettingService := services.NewGroupSettingService(groupSettingRepository, store)
 	middleWareManager := middleware.NewMiddleWareManager(userService, store)
-	handlerManager := handlers.NewHandlerManager(bot, store, searchService, groupSettingSerivce, dataService, middleWareManager)
+	bundle, err := InitBundle()
+	if err != nil {
+		return nil, err
+	}
+	handlerManager := handlers.NewHandlerManager(bot, store, searchService, groupSettingService, dataService, middleWareManager, bundle)
 	injector := &Injector{
 		Bot:            bot,
 		IndexManager:   indexMangerService,

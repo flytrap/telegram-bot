@@ -70,7 +70,11 @@ func (s *HandlerManagerImp) removeVerifyStatus(ChatId int64, userId int64) error
 
 // 发送消息并自动删除
 func (s *HandlerManagerImp) sendAutoDeleteMessage(ctx tele.Context, d time.Duration, what interface{}, opts ...interface{}) error {
-	m, _ := ctx.Bot().Send(ctx.Recipient(), what, opts...)
+	m, err := ctx.Bot().Send(ctx.Recipient(), what, opts...)
+	if err != nil {
+		logrus.Info(err)
+		return err
+	}
 	key := fmt.Sprintf("del:message:%d", m.ID)
 	data := fmt.Sprintf("%d:%d:%d", time.Now().Add(d).Unix(), m.Chat.ID, m.ID)
 	s.store.Set(context.Background(), key, data, d+time.Hour*12)
