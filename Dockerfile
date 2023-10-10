@@ -21,7 +21,7 @@ WORKDIR /build
 
 COPY . .
 RUN go mod tidy
-RUN go build -ldflags="-s -w" -o /app/server cmd/main.go
+RUN go build -ldflags="-s -w" -o /app/server main.go
 
 
 FROM alpine

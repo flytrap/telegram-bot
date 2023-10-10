@@ -90,10 +90,10 @@ func RunIndex(ctx context.Context, opts ...Option) error {
 	}
 	injector.IndexManager.InitIndex(ctx)
 	if o.Index == "load" {
-		if len(config.C.Bot.Languages) == 0 {
+		if len(config.C.Index.Languages) == 0 {
 			return nil
 		}
-		indexName := injector.IndexManager.IndexName(config.C.Bot.Languages[0]) // 只创建一个索引
+		indexName := injector.IndexManager.IndexName(config.C.Index.Languages[0]) // 只创建一个索引
 		injector.IndexManager.LoadData(ctx, indexName, "")
 		return nil
 	}

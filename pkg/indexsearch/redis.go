@@ -31,35 +31,17 @@ var LanguageMap = map[string]string{
 	"yiddish":    "ייִדיש",    // 意第绪语
 }
 
-func NewRedisSearch(client *rueidis.CoreClient, index string, language string, prefix string) IndexSearch {
-	return &IndexSearchOnRedis{client: *client, Name: index, Prefix: prefix, Language: language, Score: 1, ScoreField: "weight",
-		IndexInfo: IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: 0.5}}
-}
-
-type IndexField struct {
-	Name   string
-	Type   string   // geo, text, num, tag, vector
-	Weight float64  // 权重
-	Algo   string   // vector 使用
-	Args   []string // vector使用
-}
-
-type IndexInfo struct {
-	Name     float64 // 标题(string)
-	Category float64 // 分类(string, tag)
-	Code     float64 // 数据代号(string, tag)
-	Type     float64 // 数据类型(int, num)
-	Desc     float64 // 详细内容(string)
+func NewRedisSearch(client *rueidis.CoreClient, index string, language string, prefix string, config IndexInfo) IndexSearch {
+	return &IndexSearchOnRedis{client: *client, Name: index, Prefix: prefix, Language: language, Score: 1, IndexInfo: config}
 }
 
 type IndexSearchOnRedis struct {
-	client     rueidis.CoreClient
-	Name       string // 索引名称
-	Language   string
-	Prefix     string
-	Score      int64
-	ScoreField string
-	IndexInfo  IndexInfo
+	client    rueidis.CoreClient
+	Name      string // 索引名称
+	Language  string
+	Prefix    string
+	Score     int64
+	IndexInfo IndexInfo
 }
 
 // 初始化索引信息
@@ -73,9 +55,12 @@ func (s *IndexSearchOnRedis) Init(ctx context.Context) error {
 	if IsContain(vs, s.Name) {
 		return nil
 	}
-	// cmd := s.client.B().FtCreate().Index(s.Name).OnJson().Prefix(1).Prefix(s.Prefix).Language(s.Language).Score(float64(s.Score)).ScoreField(s.ScoreField).Nohl()
 	cmd := s.client.B().FtCreate().Index(s.Name).OnJson().Prefix(1).Prefix(s.Prefix).Language(s.Language).Nohl()
-	build := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$category").As("category").Tag().FieldName("$code").As("code").Tag().FieldName("$type").As("type").Numeric().FieldName("$number").As("number").Numeric().Sortable().FieldName("$weight").As("weight").Numeric().Sortable().FieldName("$desc").As("desc").Text().Weight(s.IndexInfo.Desc).Build()
+	tagBuild := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$category").As("category").Tag()
+	for _, tag := range s.IndexInfo.Tags {
+		tagBuild = tagBuild.FieldName(fmt.Sprintf("$%s", tag)).As(tag).Tag()
+	}
+	build := tagBuild.FieldName("$type").As("type").Numeric().FieldName("$number").As("number").Numeric().Sortable().FieldName("$time").As("time").Numeric().Sortable().FieldName("$weight").As("weight").Numeric().Sortable().FieldName("$desc").As("desc").Text().Weight(s.IndexInfo.Desc).Build()
 
 	err = s.client.Do(ctx, build).Error()
 	return err
@@ -87,6 +72,12 @@ func (s *IndexSearchOnRedis) GetName() string {
 
 func (s *IndexSearchOnRedis) PrefixKey(key string) string {
 	return fmt.Sprintf("%s:%s", s.Prefix, key)
+}
+
+// 添加词条
+func (s *IndexSearchOnRedis) GetItem(ctx context.Context, key string) (map[string]string, error) {
+	cmd := s.client.B().JsonGet().Key(s.PrefixKey(key)).Path("$").Build()
+	return s.client.Do(ctx, cmd).AsStrMap()
 }
 
 // 添加词条
@@ -108,13 +99,22 @@ func (s *IndexSearchOnRedis) Delete(ctx context.Context) error {
 }
 
 // 搜索
-func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error) {
-	text = filterQuery(text) // 过滤特殊字符
-	q := fmt.Sprintf("(@category:{%s})|%s", text, text)
-	if len(category) > 0 {
-		q = fmt.Sprintf("@category:{%s} %s", category, q)
+func (s *IndexSearchOnRedis) Search(ctx context.Context, query SearchReq) (int64, []map[string]interface{}, error) {
+	q := ""
+	if len(query.Tags) > 0 {
+		li := []string{}
+		for k, v := range query.Tags {
+			li = append(li, fmt.Sprintf("@%s:{%s}", k, v))
+		}
+		q = strings.Join(li, "|")
+	} else {
+		text := filterQuery(query.Q) // 过滤特殊字符
+		q = fmt.Sprintf("(@category:{%s})|%s", text, text)
 	}
-	n, resp, err := s.Query(ctx, q, (page-1)*size, size)
+	if len(query.Category) > 0 {
+		q = fmt.Sprintf("@category:{%s} %s", query.Category, q)
+	}
+	n, resp, err := s.Query(ctx, q, query.Order, (query.Page-1)*query.Size, query.Size)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -131,9 +131,15 @@ func (s *IndexSearchOnRedis) Search(ctx context.Context, text string, category s
 	return n, results, nil
 }
 
-func (s *IndexSearchOnRedis) Query(ctx context.Context, query string, offset int64, num int64) (int64, []rueidis.FtSearchDoc, error) {
-	cmd := s.client.B().FtSearch().Index(s.Name).Query(query).Sortby("weight").Desc().Limit().OffsetNum(offset, num).Build()
-	n, resp, err := s.client.Do(ctx, cmd).AsFtSearch()
+func (s *IndexSearchOnRedis) Query(ctx context.Context, query string, order string, offset int64, num int64) (int64, []rueidis.FtSearchDoc, error) {
+	cmd := s.client.B().FtSearch().Index(s.Name).Query(query)
+	var build rueidis.Completed
+	if len(order) > 0 {
+		build = cmd.Sortby(order).Desc().Limit().OffsetNum(offset, num).Build()
+	} else {
+		build = cmd.Limit().OffsetNum(offset, num).Build()
+	}
+	n, resp, err := s.client.Do(ctx, build).AsFtSearch()
 	logrus.Info("query: ", query, ";result: ", n)
 	if err != nil {
 		return 0, nil, err

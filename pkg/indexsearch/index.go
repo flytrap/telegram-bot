@@ -9,8 +9,26 @@ type IndexSearch interface {
 	AddItem(ctx context.Context, key string, data interface{}) error // 设置词条
 	DeleteItem(ctx context.Context, key string) error                // 删除词条
 	Delete(ctx context.Context) error                                // 删除词条
-	Search(ctx context.Context, text string, category string, page int64, size int64) (int64, []map[string]interface{}, error)
+	Search(ctx context.Context, query SearchReq) (int64, []map[string]interface{}, error)
 	GetName() string
+}
+
+type IndexInfo struct {
+	Name     float64  // 标题(string)
+	Category float64  // 分类(string, tag)
+	Code     float64  // 数据代号(string, tag)
+	Type     float64  // 数据类型(int, num)
+	Desc     float64  // 详细内容(string)
+	Tags     []string // 标签字段
+}
+
+type SearchReq struct {
+	Category string            // 分类
+	Q        string            // 搜索字符串
+	Page     int64             // 分页
+	Size     int64             // 数量
+	Order    string            // 排序
+	Tags     map[string]string // 标签搜索
 }
 
 func IsContain(items []string, item string) bool {

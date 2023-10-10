@@ -27,10 +27,15 @@
       ["学术", "咨询", "NSFW"]
     ],
     "manager": { "user_id": 0, "username": "Gs1234Bot", "delete_delay": 30 },
+    "use_cache": true
+  },
+  "index": {
     "languages": ["chinese"],
     "page_size": 15,
     "max_page": 20,
-    "use_cache": true
+    "order": "weight",
+    "detail": true,
+    "tags": ["province", "city", "area"]
   },
   "proxy": {
     "protocal": "socks5",

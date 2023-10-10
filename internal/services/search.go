@@ -3,10 +3,12 @@ package services
 import (
 	"context"
 	"fmt"
+	"math/rand"
 
 	"github.com/flytrap/telegram-bot/internal/config"
 	"github.com/flytrap/telegram-bot/internal/serializers"
 	"github.com/flytrap/telegram-bot/pkg/human"
+	"github.com/flytrap/telegram-bot/pkg/indexsearch"
 )
 
 type SearchService interface {
@@ -24,14 +26,14 @@ type searchServiceImp struct {
 }
 
 func (s *searchServiceImp) QueryItems(ctx context.Context, text string, page int64, size int64) (items []string, hasNext bool, err error) {
-	if page >= config.C.Bot.MaxPage {
-		page = config.C.Bot.MaxPage // 阻止过多翻页
+	if page >= config.C.Index.MaxPage {
+		page = config.C.Index.MaxPage // 阻止过多翻页
 	}
 	var n int64
 	if config.C.Bot.UseCache {
-		n, items, err = s.QueryCacheItems(ctx, "chinese", text, "", page, config.C.Bot.PageSize)
+		n, items, err = s.QueryCacheItems(ctx, "chinese", text, "", page, config.C.Index.PageSize)
 	} else {
-		n, items, err = s.QueryDbItems(text, page, config.C.Bot.PageSize)
+		n, items, err = s.QueryDbItems(text, page, config.C.Index.PageSize)
 	}
 	if err != nil {
 		return nil, false, err
@@ -71,13 +73,25 @@ func (s *searchServiceImp) QueryDbItems(text string, page int64, size int64) (in
 
 func (s *searchServiceImp) QueryCacheItems(ctx context.Context, name string, text string, category string, page int64, size int64) (int64, []string, error) {
 	index := s.IndexManager.IndexName(name)
-	n, data, err := s.IndexManager.Query(ctx, index, text, category, page, size)
-	if err != nil {
+	query := indexsearch.SearchReq{Q: text, Category: category, Page: page, Size: size} // 查询条件
+	if config.C.Index.Detail {
+		query.Q = ""
+		for _, tag := range config.C.Index.Tags {
+			query.Tags[tag] = text
+		}
+	}
+	n, data, err := s.IndexManager.Query(ctx, index, query)
+	if err != nil || n == 0 {
 		return 0, nil, err
 	}
 	items := []string{}
-	for i, item := range data {
-		items = append(items, human.TgGroupItemInfo(int(page-1)*int(size)+i+1, item["code"].(string), int(item["type"].(float64)), item["name"].(string), int64(item["number"].(float64))))
+	if config.C.Index.Detail {
+		i := rand.Intn(len(data))
+		items = append(items, human.DetailItemInfo(data[i]["name"].(string), data[i]["desc"].(string), data[i]["extend"].(string), data[i]["images"].([]string), ""))
+	} else {
+		for i, item := range data {
+			items = append(items, human.TgGroupItemInfo(int(page-1)*int(size)+i+1, item["code"].(string), int(item["type"].(float64)), item["name"].(string), int64(item["number"].(float64))))
+		}
 	}
 	return n, items, nil
 }

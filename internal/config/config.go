@@ -14,6 +14,7 @@ type Config struct {
 	Redis        Redis        `json:"redis" mapstructure:"redis"`
 	Proxy        Proxy        `json:"proxy" mapstructure:"proxy"`
 	Bot          Bot          `json:"bot" mapstructure:"bot"`
+	Index        Index        `json:"index" mapstructure:"index"`
 	Gorm         Gorm         `json:"gorm" mapstructure:"gorm"`
 	PrintConfig  bool         `json:"print_config" mapstructure:"print_config"`
 }
@@ -66,15 +67,21 @@ type Redis struct {
 }
 
 type Bot struct {
-	AppId     string     `json:"app_id" mapstructure:"app_id"`
-	ApiHash   string     `json:"api_hash" mapstructure:"api_hash"`
-	Token     string     `json:"token" mapstructure:"token"`         // 机器人token
-	Menus     [][]string `json:"menus" mapstructure:"menus"`         // 菜单配置
-	UseCache  bool       `json:"use_cache" mapstructure:"use_cache"` // 使用缓存
-	Languages []string   `json:"languages" mapstructure:"languages"` // 启动的语言
-	PageSize  int64      `json:"page_size" mapstructure:"page_size"` // 搜索单页大小
-	MaxPage   int64      `json:"max_page" mapstructure:"max_page"`   // 最大页码
-	Manager   BotManager `json:"manager" mapstructure:"manager"`     // 管理信息
+	AppId    string     `json:"app_id" mapstructure:"app_id"`
+	ApiHash  string     `json:"api_hash" mapstructure:"api_hash"`
+	Token    string     `json:"token" mapstructure:"token"`         // 机器人token
+	Menus    [][]string `json:"menus" mapstructure:"menus"`         // 菜单配置
+	UseCache bool       `json:"use_cache" mapstructure:"use_cache"` // 使用缓存
+	Manager  BotManager `json:"manager" mapstructure:"manager"`     // 管理信息
+}
+
+type Index struct {
+	Languages []string `json:"languages" mapstructure:"languages"` // 启动的语言
+	PageSize  int64    `json:"page_size" mapstructure:"page_size"` // 搜索单页大小
+	MaxPage   int64    `json:"max_page" mapstructure:"max_page"`   // 最大页码
+	Detail    bool     `json:"detail" mapstructure:"detail"`       // 详情模式(直接返回详情信息)
+	Order     string   `json:"order" mapstructure:"order"`         // 排序
+	Tags      []string `json:"tags" mapstructure:"tags"`           // 数据标记, 建立索引
 }
 
 type Proxy struct {
