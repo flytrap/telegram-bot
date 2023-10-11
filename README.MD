@@ -10,7 +10,7 @@ tg bot
 wire ./internal
 ```
 
-### 生成 bz 包文件
+### 生成 proto 文件
 
 ```bash
 protoc -I=pb --go_out=pb/v1 --go_opt=paths=source_relative --go-grpc_out=pb/v1 --go-grpc_opt=paths=source_relative pb/tg.proto

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -60,6 +61,12 @@ func (s *indexMangerServiceImp) AddItems(ctx context.Context, indexName string, 
 			continue
 		}
 		info.ParseLocation(item.Location)
+		if len(item.Images) > 0 {
+			err = json.Unmarshal(item.Images, &info.Images)
+			if err != nil {
+				continue
+			}
+		}
 		err = index.AddItem(ctx, key, &info)
 		if err != nil {
 			logrus.Warning(err)

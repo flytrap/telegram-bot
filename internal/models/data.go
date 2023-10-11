@@ -36,19 +36,20 @@ func (j JSON) Value() (driver.Value, error) {
 type DataInfo struct {
 	gorm.Model
 
-	Category uint   `json:"category" gorm:"comment:分类"`
-	Language string `json:"language" gorm:"size:32;comment:语言"`
-	Name     string `json:"name" gorm:"size:256;comment:名字"`
-	Code     string `json:"code" gorm:"unique;size:64;comment:唯一标识"`
-	Tid      int64  `json:"tid" gorm:"comment:TgId"`
-	Type     int8   `json:"type" gorm:"default:1;comment:类型,区分group|channel"`
-	Number   uint32 `json:"number" gorm:"comment:人数"`
-	Desc     string `json:"desc" gorm:"type:text;comment:描述信息"`
-	Weight   int32  `json:"weight" gorm:"default:0;comment:权重"`
-	Private  string `json:"private" gorm:"comment:私密信息"`
-	Location string `json:"location" gorm:"size:64;comment:地理位置"`
-	Extend   string `json:"extend" gorm:"type:text;comment:扩展信息"`
-	Images   JSON   `json:"images" gorm:"type:json;comment:图片"`
+	Category uint   `json:"category" mapstructure:"category" gorm:"comment:分类"`
+	Language string `json:"language" mapstructure:"language" gorm:"size:32;comment:语言"`
+	Name     string `json:"name" mapstructure:"name" gorm:"size:256;comment:名字"`
+	Code     string `json:"code" mapstructure:"code" gorm:"unique;size:64;comment:唯一标识"`
+	Tid      int64  `json:"tid" mapstructure:"tid" gorm:"comment:TgId"`
+	Type     int8   `json:"type" mapstructure:"type" gorm:"default:1;comment:类型,区分group|channel"`
+	Number   uint32 `json:"number" mapstructure:"number" gorm:"comment:人数"`
+	Desc     string `json:"desc" mapstructure:"desc" gorm:"type:text;comment:描述信息"`
+	Weight   int32  `json:"weight" mapstructure:"weight" gorm:"default:0;comment:权重"`
+	Private  string `json:"private" mapstructure:"private" gorm:"comment:私密信息"`
+	Location string `json:"location" mapstructure:"location" gorm:"size:64;comment:地理位置"`
+	Extend   string `json:"extend" mapstructure:"extend" gorm:"type:text;comment:扩展信息"`
+	Time     int64  `json:"time" mapstructure:"time" gorm:"comment:更新时间"`
+	Images   JSON   `json:"images,omitempty" mapstructure:"images,omitempty" gorm:"type:json;comment:图片"`
 
 	Tags []Tag `json:"tags" gorm:"many2many:data_tag"`
 }

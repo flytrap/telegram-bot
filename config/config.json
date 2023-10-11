@@ -11,10 +11,10 @@
     "tokens": ["test"]
   },
   "redis": {
-    "addr": "127.0.0.1:6379",
+    "addr": "192.168.3.13:6379",
     "password": "123456",
-    "db": 0,
-    "key_prefix": "tg:group"
+    "db": 1,
+    "key_prefix": "tg:data"
   },
   "bot": {
     "api_id": "",
@@ -39,19 +39,19 @@
   },
   "proxy": {
     "protocal": "socks5",
-    "ip": "127.0.0.1",
+    "ip": "172.19.240.1",
     "port": 7890
   },
   "gorm": {
     "debug": true,
     "db_type": "sqlite",
-    "db_name": "config/tg-bot.sqlite3",
+    "db_name": "config/tg-xjj.sqlite3",
     "max_lifetime": 7200,
     "max_open_conns": 150,
     "max_idle_conns": 50,
     "table_prefix": "tg_",
     "enable_auto_migrate": true,
-    "dsn": "flytrap:flytrap@tcp(192.168.0.102:3306)/tg-bot?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true"
+    "dsn": "flytrap:flytrap@tcp(192.168.3.13:3306)/tg-test?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true"
   },
   "print_config": true
 }

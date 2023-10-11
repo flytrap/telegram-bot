@@ -7,6 +7,7 @@ import (
 
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pb/v1"
+	"github.com/flytrap/telegram-bot/pkg/human"
 	"github.com/sirupsen/logrus"
 )
 
@@ -55,7 +56,15 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 				logrus.Fatalf("recv error:%v", err)
 			}
 			logrus.Printf("Recved :%v \n", req.Detail.Name)
-			msgCh <- s.dataService.UpdateOrCreate(req.Detail.Code, req.Detail.Tid, req.Detail.Name, req.Detail.Desc, uint32(req.Detail.Number), req.Tags, req.Category, req.Detail.Language)
+			info, err := human.Decode(req.Detail)
+			if err != nil {
+				logrus.Warning(err)
+				continue
+			}
+
+			info["tags"] = req.Tags
+			info["category"] = req.Category
+			msgCh <- s.dataService.UpdateOrCreate(req.Detail.Code, info)
 		}
 		close(msgCh)
 	}()
@@ -79,7 +88,12 @@ func (s *TgBotService) SearchData(ctx context.Context, req *pb.DataSearchRequest
 }
 
 func (s *TgBotService) UpdateData(ctx context.Context, req *pb.DataItem) (*pb.RetInfo, error) {
-	err := s.dataService.Update(req.Code, req.Tid, req.Name, req.Desc, req.Number, -1, req.Language, uint(req.Category))
+	info, err := human.Decode(req)
+	if err != nil {
+		logrus.Warning(err)
+		return &pb.RetInfo{Status: false, Msg: err.Error()}, err
+	}
+	err = s.dataService.Update(req.Code, info)
 	if err != nil {
 		return &pb.RetInfo{Status: false, Msg: err.Error()}, err
 	}

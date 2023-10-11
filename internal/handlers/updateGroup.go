@@ -45,7 +45,8 @@ func (s *HandlerManagerImp) updateInfo(code string) {
 		desc = res["description"].(string)
 	}
 	activeNum := len(res["active_usernames"].([]interface{}))
-	s.dataService.Update(code, int64(res["id"].(float64)), res["title"].(string), desc, n, activeNum, "", 0)
+	info := map[string]interface{}{"tid": int64(res["id"].(float64)), "name": res["title"].(string), "desc": desc, "number": n, "weight": activeNum}
+	s.dataService.Update(code, info)
 }
 
 // 获取群人数
