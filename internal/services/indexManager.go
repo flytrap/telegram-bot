@@ -22,6 +22,7 @@ type IndexMangerService interface {
 	InitIndex(ctx context.Context) error                                                          // 初始化索引数据
 	DeleteAllIndex(ctx context.Context)                                                           // 清除索引信息
 	AddItems(ctx context.Context, indexName string, data map[string]*serializers.DataCache) error // 添加词条
+	GetItem(ctx context.Context, indexName string, code string) (map[string]interface{}, error)   // 添加词条
 	RemoveItem(ctx context.Context, indexName string, key string) error                           // 删除词条
 	Query(ctx context.Context, indexName string, info indexsearch.SearchReq) (int64, []map[string]interface{}, error)
 }
@@ -39,11 +40,11 @@ type indexMangerServiceImp struct {
 }
 
 func (s *indexMangerServiceImp) IndexName(key string) string {
-	return fmt.Sprintf("index:%s", key)
+	return fmt.Sprintf("%s:%s", config.C.Index.Name, key)
 }
 
 func (s *indexMangerServiceImp) addIndex(ctx context.Context, indexName string, language string, prefix string) error {
-	index := indexsearch.NewRedisSearch(&s.Client, indexName, language, fmt.Sprintf("%s:%s", prefix, language), indexsearch.IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: 0.5, Tags: config.C.Index.Tags})
+	index := indexsearch.NewRedisSearch(&s.Client, indexName, language, fmt.Sprintf("%s:%s", prefix, language), indexsearch.IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: 0.5})
 	s.indexes[indexName] = index
 	return index.Init(ctx)
 }
@@ -73,6 +74,14 @@ func (s *indexMangerServiceImp) AddItems(ctx context.Context, indexName string, 
 		}
 	}
 	return nil
+}
+
+func (s *indexMangerServiceImp) GetItem(ctx context.Context, indexName string, code string) (map[string]interface{}, error) {
+	index, ok := s.indexes[indexName]
+	if !ok {
+		return nil, errors.New("index not found")
+	}
+	return index.GetItem(ctx, code)
 }
 
 func (s *indexMangerServiceImp) RemoveItem(ctx context.Context, indexName string, key string) error {
@@ -169,7 +178,7 @@ func (s *indexMangerServiceImp) InitIndex(ctx context.Context) error {
 
 func (s *indexMangerServiceImp) DeleteIndex(ctx context.Context, lang string) error {
 	name := s.IndexName(lang)
-	index := indexsearch.NewRedisSearch(&s.Client, name, lang, fmt.Sprintf("%s:%s", config.C.Redis.KeyPrefix, lang), indexsearch.IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: 0.5, Tags: config.C.Index.Tags})
+	index := indexsearch.NewRedisSearch(&s.Client, name, lang, fmt.Sprintf("%s:%s", config.C.Redis.KeyPrefix, lang), indexsearch.IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: 0.5})
 	return index.Delete(ctx)
 }
 

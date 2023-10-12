@@ -1,6 +1,12 @@
 package serializers
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/yanyiwu/gojieba"
+)
+
+var x = gojieba.NewJieba()
 
 type DataCache struct {
 	Category string  `json:"category"` // 分类
@@ -13,7 +19,7 @@ type DataCache struct {
 	Weight   float32 `json:"weight"`   // 数据权重
 	Location string  `json:"location"` // 地理位置
 	Extend   string  `json:"extend"`   // 拓展数据
-	Time     string  `json:"time"`     // 更新时间
+	Time     int64   `json:"time"`     // 更新时间
 	Private  string  `json:"private"`  // 私密数据
 	Images   []byte  `json:"images"`   // 图片
 }
@@ -29,22 +35,23 @@ type DataCacheLocation struct {
 	Weight   float32  `json:"weight"`   // 数据权重
 	Time     int64    `json:"time"`     // 更新时间
 	Private  string   `json:"private"`  // 私密数据
-	Province string   `json:"province"` // 省
-	City     string   `json:"city"`     // 市
-	Area     string   `json:"area"`     // 区
 	Extend   string   `json:"extend"`   // 拓展数据
 	Images   []string `json:"images"`   // 图片
+	Tags     []string `json:"tags"`     // 标签
 }
 
 func (s *DataCacheLocation) ParseLocation(location string) {
 	li := strings.Split(location, "-")
+	if len(s.Tags) == 0 {
+		s.Tags = []string{s.Category}
+	}
 	if len(li) > 0 {
-		s.Province = li[0]
+		s.Tags = append(s.Tags, x.CutAll(strings.TrimSpace(li[0]))...)
 	}
 	if len(li) > 1 {
-		s.City = li[1]
+		s.Tags = append(s.Tags, x.CutAll(strings.TrimSpace(li[1]))...)
 	}
 	if len(li) > 2 {
-		s.Area = li[2]
+		s.Tags = append(s.Tags, x.CutAll(strings.TrimSpace(li[2]))...)
 	}
 }

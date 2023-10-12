@@ -56,10 +56,7 @@ func (s *IndexSearchOnRedis) Init(ctx context.Context) error {
 		return nil
 	}
 	cmd := s.client.B().FtCreate().Index(s.Name).OnJson().Prefix(1).Prefix(s.Prefix).Language(s.Language).Nohl()
-	tagBuild := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$category").As("category").Tag()
-	for _, tag := range s.IndexInfo.Tags {
-		tagBuild = tagBuild.FieldName(fmt.Sprintf("$%s", tag)).As(tag).Tag()
-	}
+	tagBuild := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$tags").As("tags").Tag()
 	build := tagBuild.FieldName("$type").As("type").Numeric().FieldName("$number").As("number").Numeric().Sortable().FieldName("$time").As("time").Numeric().Sortable().FieldName("$weight").As("weight").Numeric().Sortable().FieldName("$desc").As("desc").Text().Weight(s.IndexInfo.Desc).Build()
 
 	err = s.client.Do(ctx, build).Error()
@@ -75,9 +72,18 @@ func (s *IndexSearchOnRedis) PrefixKey(key string) string {
 }
 
 // 添加词条
-func (s *IndexSearchOnRedis) GetItem(ctx context.Context, key string) (map[string]string, error) {
+func (s *IndexSearchOnRedis) GetItem(ctx context.Context, key string) (map[string]interface{}, error) {
 	cmd := s.client.B().JsonGet().Key(s.PrefixKey(key)).Path("$").Build()
-	return s.client.Do(ctx, cmd).AsStrMap()
+	result, err := s.client.Do(ctx, cmd).AsBytes()
+	if err != nil {
+		return nil, err
+	}
+	res := []map[string]interface{}{}
+	err = json.Unmarshal(result, &res)
+	if err != nil || len(res) == 0 {
+		return nil, err
+	}
+	return res[0], err
 }
 
 // 添加词条
@@ -100,16 +106,11 @@ func (s *IndexSearchOnRedis) Delete(ctx context.Context) error {
 
 // 搜索
 func (s *IndexSearchOnRedis) Search(ctx context.Context, query SearchReq) (int64, []map[string]interface{}, error) {
-	q := ""
-	if len(query.Tags) > 0 {
-		li := []string{}
-		for k, v := range query.Tags {
-			li = append(li, fmt.Sprintf("@%s:{%s}", k, v))
-		}
-		q = strings.Join(li, "|")
+	q := filterQuery(query.Q)
+	if len(q) == 0 {
+		q = fmt.Sprintf("@tags:{%s}", query.Tag)
 	} else {
-		text := filterQuery(query.Q) // 过滤特殊字符
-		q = fmt.Sprintf("(@category:{%s})|%s", text, text)
+		q = fmt.Sprintf("%s|(@tags:{%s})", q, query.Tag)
 	}
 	if len(query.Category) > 0 {
 		q = fmt.Sprintf("@category:{%s} %s", query.Category, q)
@@ -148,6 +149,9 @@ func (s *IndexSearchOnRedis) Query(ctx context.Context, query string, order stri
 }
 
 func filterQuery(q string) string {
+	if len(q) == 0 {
+		return q
+	}
 	for _, key := range []string{"(", ")", "[", "]", "$", "@", "."} {
 		q = strings.ReplaceAll(q, key, "|")
 	}

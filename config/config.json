@@ -13,7 +13,7 @@
   "redis": {
     "addr": "192.168.3.13:6379",
     "password": "123456",
-    "db": 1,
+    "db": 0,
     "key_prefix": "tg:data"
   },
   "bot": {
@@ -30,11 +30,13 @@
     "use_cache": true
   },
   "index": {
+    "name": "test",
     "languages": ["chinese"],
     "page_size": 15,
     "max_page": 20,
     "order": "weight",
     "detail": true,
+    "only_tag": true,
     "tags": ["province", "city", "area"]
   },
   "proxy": {

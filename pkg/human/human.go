@@ -34,13 +34,13 @@ func TgGroupUrl(code string) string {
 	return fmt.Sprintf("https://t.me/%s", code)
 }
 
-func DetailItemInfo(name string, desc string, extend string, images []string, url string) string {
+func DetailItemInfo(name string, desc string, extend string, images []interface{}, code string) string {
 	s := ""
 	for i, img := range images {
 		s += fmt.Sprintf("![%d](%s)\n", i, img)
 	}
-	if len(url) > 0 {
-		name = fmt.Sprintf("[%s](%s)", name, url)
+	if len(code) > 0 {
+		name = fmt.Sprintf("[%s](@%s)", name, code)
 	}
 	return fmt.Sprintf("%s\n %s\n\n %s\n %s", name, desc, extend, s)
 }

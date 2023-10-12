@@ -76,9 +76,11 @@ type Bot struct {
 }
 
 type Index struct {
+	Name      string   `json:"name" mapstructure:"name"`           // 索引名称前缀
 	Languages []string `json:"languages" mapstructure:"languages"` // 启动的语言
 	PageSize  int64    `json:"page_size" mapstructure:"page_size"` // 搜索单页大小
 	MaxPage   int64    `json:"max_page" mapstructure:"max_page"`   // 最大页码
+	OnlyTag   bool     `json:"only_tag" mapstructure:"only_tag"`   // 只通过tag搜素
 	Detail    bool     `json:"detail" mapstructure:"detail"`       // 详情模式(直接返回详情信息)
 	Order     string   `json:"order" mapstructure:"order"`         // 排序
 	Tags      []string `json:"tags" mapstructure:"tags"`           // 数据标记, 建立索引

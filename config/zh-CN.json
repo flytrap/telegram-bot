@@ -31,5 +31,7 @@
   "defaultTemplate": "本BOT代表本群所有人热烈欢迎新成员: {{.Name}}\n {{.Desc}}\n\n {{.Pinned}}",
   "descTemplate": "\n请遵循本群规则\n{{.Desc}}\n",
   "pinnedTemplate": "\n请务必读一下置顶消息\n{{.Pinned}}",
-  "killMsg": "本消息将在{{.Timeout}}秒后自毁\n"
+  "killMsg": "本消息将在{{.Timeout}}秒后自毁\n",
+  "viewPrivate": "查看联系方式",
+  "another": "换一个"
 }
