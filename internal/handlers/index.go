@@ -25,7 +25,7 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	if cb != nil {
 		args = strings.Split(cb.Data, "|")
 		if len(args) > 2 {
-			n, err := strconv.Atoi(args[1])
+			n, err := strconv.Atoi(args[2])
 			if err != nil {
 				logrus.Warn(err)
 			} else {
@@ -69,11 +69,11 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	}
 	result := strings.Join(results, "\n")
 	if page > 1 {
-		btnPrev = selector.Data("⬅ prev", "prev", tag, category, fmt.Sprint(page-1))
+		btnPrev = selector.Data("⬅ prev", "prev", category, tag, fmt.Sprint(page-1))
 		ctx.Bot().Handle(&btnPrev, s.IndexHandler)
 	}
 	if hasNext {
-		btnNext = selector.Data("next ➡", "next", tag, category, fmt.Sprint(page+1))
+		btnNext = selector.Data("next ➡", "next", category, tag, fmt.Sprint(page+1))
 	}
 	if len(result) == 0 {
 		result = localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "queryTip"})
