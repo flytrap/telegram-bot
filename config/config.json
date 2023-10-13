@@ -35,7 +35,7 @@
     "page_size": 15,
     "max_page": 20,
     "order": "weight",
-    "detail": true,
+    "item_mode": "private",
     "only_tag": true,
     "tags": ["province", "city", "area"]
   },

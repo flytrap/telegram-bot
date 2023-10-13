@@ -32,6 +32,8 @@
   "descTemplate": "\n请遵循本群规则\n{{.Desc}}\n",
   "pinnedTemplate": "\n请务必读一下置顶消息\n{{.Pinned}}",
   "killMsg": "本消息将在{{.Timeout}}秒后自毁\n",
+  "queryTip": "点击查询详情",
+  "viewDetail": "查看更多",
   "viewPrivate": "查看联系方式",
   "another": "换一个"
 }

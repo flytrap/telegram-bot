@@ -56,7 +56,7 @@ func (s *IndexSearchOnRedis) Init(ctx context.Context) error {
 		return nil
 	}
 	cmd := s.client.B().FtCreate().Index(s.Name).OnJson().Prefix(1).Prefix(s.Prefix).Language(s.Language).Nohl()
-	tagBuild := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$tags").As("tags").Tag()
+	tagBuild := cmd.Schema().FieldName("$name").As("name").Text().Weight(s.IndexInfo.Name).FieldName("$category").As("category").Tag().FieldName("$tags").As("tags").Tag()
 	build := tagBuild.FieldName("$type").As("type").Numeric().FieldName("$number").As("number").Numeric().Sortable().FieldName("$time").As("time").Numeric().Sortable().FieldName("$weight").As("weight").Numeric().Sortable().FieldName("$desc").As("desc").Text().Weight(s.IndexInfo.Desc).Build()
 
 	err = s.client.Do(ctx, build).Error()
