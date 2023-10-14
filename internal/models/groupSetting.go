@@ -9,7 +9,7 @@ type GroupSetting struct {
 	Code string `json:"code" gorm:"unique;size:64;comment:唯一标识"`
 
 	// 配置信息
-	NotRobot        bool   `json:"not_robot" gorm:"default:true;comment:机器人校验开启"`
+	NotRobot        bool   `json:"not_robot" gorm:"default:false;comment:机器人校验开启"`
 	RobotTimeout    int    `json:"robot_timeout" gorm:"default:30;comment:机器人校验时间"`
 	Welcome         bool   `json:"welcome" gorm:"default:true;comment:是否开启新人欢迎词"`
 	WelcomeDesc     bool   `json:"welcome_desc" gorm:"default:true;comment:是否显示描述信息"`

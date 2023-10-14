@@ -15,7 +15,9 @@ RUN apk add --no-cache \
     # Important: required for go-sqlite3
     gcc \
     # Required for Alpine
-    musl-dev
+    musl-dev \
+    g++ \
+    libc-dev
 
 WORKDIR /build
 
