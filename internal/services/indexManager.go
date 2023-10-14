@@ -61,7 +61,7 @@ func (s *indexMangerServiceImp) AddItems(ctx context.Context, indexName string, 
 			logrus.Warning(err)
 			continue
 		}
-		info.ParseLocation(item.Location)
+		info.ParseLocation()
 		if len(item.Images) > 0 {
 			err = json.Unmarshal(item.Images, &info.Images)
 			if err != nil {

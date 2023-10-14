@@ -80,10 +80,8 @@ type Index struct {
 	Languages []string `json:"languages" mapstructure:"languages"` // 启动的语言
 	PageSize  int64    `json:"page_size" mapstructure:"page_size"` // 搜索单页大小
 	MaxPage   int64    `json:"max_page" mapstructure:"max_page"`   // 最大页码
-	OnlyTag   bool     `json:"only_tag" mapstructure:"only_tag"`   // 只通过tag搜素
 	ItemMode  string   `json:"item_mode" mapstructure:"item_mode"` // 条目模式(tg_link:点击直接跳转tg链接,private:隐私模式，显示隐私信息)
 	Order     string   `json:"order" mapstructure:"order"`         // 排序
-	Tags      []string `json:"tags" mapstructure:"tags"`           // 数据标记, 建立索引
 }
 
 type Proxy struct {

@@ -17,33 +17,8 @@ type IndexCallbackFunc func(context.Context, string, int64, int64) ([]string, bo
 
 func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	selector := &tele.ReplyMarkup{}
-	category := ""            // 分类
-	tag := ctx.Message().Text // 关键词
-	page := int64(1)
-	args := ctx.Args()
-	cb := ctx.Callback()
-	if cb != nil {
-		args = strings.Split(cb.Data, "|")
-		if len(args) > 2 {
-			n, err := strconv.Atoi(args[2])
-			if err != nil {
-				logrus.Warn(err)
-			} else {
-				page = int64(n)
-			}
-		}
-	}
-
-	if len(args) > 0 {
-		tag = args[0]
-	}
-	if len(args) > 1 {
-		category = args[0]
-		tag = args[1]
-	}
-
-	size := int64(15)
-	items, hasNext, err := s.ss.QueryItems(context.Background(), category, tag, page, size)
+	category, tag, q, page, size := parseArgs(ctx)
+	items, hasNext, err := s.ss.QueryItems(context.Background(), category, tag, q, page, size)
 	localize := i18n.NewLocalizer(s.bundle, "zh-CN")
 	keywordNotFound := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "keywordNotFound"})
 	if err != nil || len(items) == 0 {
@@ -53,7 +28,7 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	var btnPrev tele.Btn
 	var btnNext tele.Btn
 
-	ad := s.ss.LoadAd(tag)
+	ad := s.ss.LoadAd(q)
 	rows := []tele.Row{}
 	results := []string{}
 	if len(ad) > 0 {
@@ -64,16 +39,16 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 		if config.C.Index.ItemMode == "tg_link" {
 			results = append(results, human.TgGroupItemInfo(ii, item["code"].(string), int(item["type"].(float64)), item["name"].(string), int64(item["number"].(float64))))
 		} else {
-			rows = append(rows, selector.Row(s.detailItem(ctx, selector, ii, tag, item["code"].(string), item["name"].(string))))
+			rows = append(rows, selector.Row(s.detailItem(selector, ii, tag, q, item["code"].(string), item["name"].(string))))
 		}
 	}
 	result := strings.Join(results, "\n")
 	if page > 1 {
-		btnPrev = selector.Data("⬅ prev", "prev", category, tag, fmt.Sprint(page-1))
+		btnPrev = selector.Data("⬅ prev", "prev", category, tag, q, fmt.Sprint(page-1))
 		ctx.Bot().Handle(&btnPrev, s.IndexHandler)
 	}
 	if hasNext {
-		btnNext = selector.Data("next ➡", "next", category, tag, fmt.Sprint(page+1))
+		btnNext = selector.Data("next ➡", "next", category, tag, q, fmt.Sprint(page+1))
 	}
 	if len(result) == 0 {
 		result = localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "queryTip"})
@@ -86,9 +61,41 @@ func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
 	return ctx.EditOrReply(result, tele.ModeMarkdown, selector)
 }
 
-func (s *HandlerManagerImp) detailItem(ctx tele.Context, selector *tele.ReplyMarkup, i int, tag string, code string, name string) tele.Btn {
-	btnDetail := selector.Data(fmt.Sprintf("%d: %s", i, name), "detail", tag, code)
-	ctx.Bot().Handle(&btnDetail, s.detailInfo)
+func parseArgs(ctx tele.Context) (string, string, string, int64, int64) {
+	category, tag := "", "" // 分类
+	q := ctx.Message().Text // 关键词
+	page := int64(1)
+	args := ctx.Args()
+	cb := ctx.Callback()
+	if cb != nil {
+		args = strings.Split(cb.Data, "|")
+		if len(args) > 3 {
+			n, err := strconv.Atoi(args[3])
+			if err != nil {
+				logrus.Warn(err)
+			} else {
+				page = int64(n)
+			}
+		}
+	}
+
+	if len(args) > 2 {
+		category = args[0]
+		tag = args[1]
+		q = args[2]
+	} else if len(args) > 1 {
+		tag = args[0]
+		q = args[1]
+	} else if len(args) == 1 {
+		q = args[0]
+	}
+	return category, tag, q, page, config.C.Index.PageSize
+}
+
+// 列表条目
+func (s *HandlerManagerImp) detailItem(selector *tele.ReplyMarkup, i int, tag string, q string, code string, name string) tele.Btn {
+	btnDetail := selector.Data(fmt.Sprintf("%d: %s", i, name), "detail", tag, q, code)
+	s.Bot.Handle(&btnDetail, s.detailInfo)
 	return btnDetail
 }
 
@@ -101,20 +108,33 @@ func (s *HandlerManagerImp) detailInfo(ctx tele.Context) error {
 		return ctx.Reply(keywordNotFound)
 	}
 	args := strings.Split(cb.Data, "|") // 获取回调参数
-	if len(args) != 2 {
+	if len(args) != 3 {
 		return ctx.Reply(keywordNotFound)
 	}
-	tag, code := args[0], args[1]
+	tag, q, code := args[0], args[1], args[2]
 	item, err := s.ss.GetDetail(context.Background(), code)
 	if err != nil {
 		return ctx.Reply(keywordNotFound)
 	}
 	selector := &tele.ReplyMarkup{}
 	viewPrivate := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "viewPrivate"})
-	btnDetail := selector.Data(viewPrivate, "view", tag, code)
+	btnDetail := selector.Data(viewPrivate, "view", tag, q, code)
 	ctx.Bot().Handle(&btnDetail, s.PrivateInfo)
 	selector.Inline(selector.Row(btnDetail))
-	result := human.DetailItemInfo(item["name"].(string), item["desc"].(string), item["extend"].(string), item["images"].([]interface{}), "")
+	result := human.DetailItemInfo(item["name"].(string), item["desc"].(string), item["extend"].(string), item["location"].(string), "")
+
+	ps := tele.Album{} // 多张图合并
+	for _, img := range item["images"].([]interface{}) {
+		f, err := human.Base64ToIoReader(img.(string))
+		if err == nil {
+			ps = append(ps, &tele.Photo{File: tele.FromReader(f)})
+		}
+	}
+	err = ctx.SendAlbum(ps)
+	if err != nil {
+		logrus.Warn(err)
+	}
+
 	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), result, tele.ModeMarkdown, selector)
 }
 
@@ -124,7 +144,8 @@ func (s *HandlerManagerImp) PrivateInfo(ctx tele.Context) error {
 	localize := i18n.NewLocalizer(s.bundle, "zh-CN")
 	keywordNotFound := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "keywordNotFound"})
 	if cb != nil {
-		code := strings.Split(cb.Data, "|")[1]
+		li := strings.Split(cb.Data, "|")
+		code := li[len(li)-1]
 		result, err := s.ss.GetPrivate(context.Background(), code)
 		if err != nil {
 			return ctx.Reply(keywordNotFound)

@@ -109,8 +109,8 @@ func (s *IndexSearchOnRedis) Search(ctx context.Context, query SearchReq) (int64
 	q := filterQuery(query.Q)
 	if len(q) == 0 {
 		q = fmt.Sprintf("@tags:{%s}", query.Tag)
-	} else {
-		q = fmt.Sprintf("%s|(@tags:{%s})", q, query.Tag)
+	} else if len(query.Tag) > 0 {
+		q = fmt.Sprintf("@tags:{%s} %s", query.Tag, q)
 	}
 	if len(query.Category) > 0 {
 		q = fmt.Sprintf("@category:{%s} %s", query.Category, q)
