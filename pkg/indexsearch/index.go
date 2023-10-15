@@ -15,11 +15,12 @@ type IndexSearch interface {
 }
 
 type IndexInfo struct {
-	Name     float64 // 标题(string)
-	Category float64 // 分类(string, tag)
-	Code     float64 // 数据代号(string, tag)
-	Type     float64 // 数据类型(int, num)
-	Desc     float64 // 详细内容(string)
+	Name         float64  // 标题(string)
+	Category     float64  // 分类(string, tag)
+	Code         float64  // 数据代号(string, tag)
+	Type         float64  // 数据类型(int, num)
+	Desc         float64  // 详细内容(string)
+	NumberFields []string // 数组索引
 }
 
 type SearchReq struct {

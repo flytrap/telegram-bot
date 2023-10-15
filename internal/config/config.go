@@ -76,12 +76,14 @@ type Bot struct {
 }
 
 type Index struct {
-	Name      string   `json:"name" mapstructure:"name"`           // 索引名称前缀
-	Languages []string `json:"languages" mapstructure:"languages"` // 启动的语言
-	PageSize  int64    `json:"page_size" mapstructure:"page_size"` // 搜索单页大小
-	MaxPage   int64    `json:"max_page" mapstructure:"max_page"`   // 最大页码
-	ItemMode  string   `json:"item_mode" mapstructure:"item_mode"` // 条目模式(tg_link:点击直接跳转tg链接,private:隐私模式，显示隐私信息)
-	Order     string   `json:"order" mapstructure:"order"`         // 排序
+	Name       string   `json:"name" mapstructure:"name"`               // 索引名称前缀
+	Languages  []string `json:"languages" mapstructure:"languages"`     // 启动的语言
+	PageSize   int64    `json:"page_size" mapstructure:"page_size"`     // 搜索单页大小
+	MaxPage    int64    `json:"max_page" mapstructure:"max_page"`       // 最大页码
+	ItemMode   string   `json:"item_mode" mapstructure:"item_mode"`     // 条目模式(tg_link:点击直接跳转tg链接,private:隐私模式，显示隐私信息)
+	Order      string   `json:"order" mapstructure:"order"`             // 排序
+	DescWeight float64  `json:"desc_weight" mapstructure:"desc_weight"` // 描述信息权重
+	NumFilter  []string `json:"num_filter" mapstructure:"num_filter"`   // 数组类型需要筛选                             // 数组类型筛选
 }
 
 type Proxy struct {

@@ -35,7 +35,9 @@
     "page_size": 15,
     "max_page": 20,
     "order": "weight",
-    "item_mode": "private"
+    "item_mode": "private",
+    "desc_weight": 0,
+    "num_filter": ["type", "number", "time"]
   },
   "proxy": {
     "protocal": "socks5",

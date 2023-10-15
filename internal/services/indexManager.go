@@ -44,7 +44,8 @@ func (s *indexMangerServiceImp) IndexName(key string) string {
 }
 
 func (s *indexMangerServiceImp) addIndex(ctx context.Context, indexName string, language string, prefix string) error {
-	index := indexsearch.NewRedisSearch(&s.Client, indexName, language, fmt.Sprintf("%s:%s", prefix, language), indexsearch.IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: 0.5})
+	config := indexsearch.IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: config.C.Index.DescWeight, NumberFields: config.C.Index.NumFilter}
+	index := indexsearch.NewRedisSearch(&s.Client, indexName, language, fmt.Sprintf("%s:%s", prefix, language), config)
 	s.indexes[indexName] = index
 	return index.Init(ctx)
 }
@@ -178,7 +179,12 @@ func (s *indexMangerServiceImp) InitIndex(ctx context.Context) error {
 
 func (s *indexMangerServiceImp) DeleteIndex(ctx context.Context, lang string) error {
 	name := s.IndexName(lang)
-	index := indexsearch.NewRedisSearch(&s.Client, name, lang, fmt.Sprintf("%s:%s", config.C.Redis.KeyPrefix, lang), indexsearch.IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: 0.5})
+	err := s.addIndex(ctx, name, lang, config.C.Redis.KeyPrefix)
+	if err != nil {
+		return err
+	}
+	index := s.indexes[name]
+	delete(s.indexes, name)
 	return index.Delete(ctx)
 }
 
