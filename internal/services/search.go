@@ -2,12 +2,14 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/flytrap/telegram-bot/internal/config"
 	"github.com/flytrap/telegram-bot/internal/serializers"
 	"github.com/flytrap/telegram-bot/pkg/human"
 	"github.com/flytrap/telegram-bot/pkg/indexsearch"
+	"github.com/sirupsen/logrus"
 )
 
 type SearchService interface {
@@ -100,6 +102,19 @@ func (s *searchServiceImp) GetDetail(ctx context.Context, code string) (map[stri
 		index := s.IndexManager.IndexName(config.C.Index.Language)
 		return s.IndexManager.GetItem(ctx, index, code)
 	} else {
-		return s.dataService.Get(code)
+		res, err := s.dataService.Get(code)
+		if err != nil {
+			return res, err
+		}
+		img := []interface{}{}
+		if res["images"] != nil {
+			imgData := []byte(res["images"].(string))
+			err := json.Unmarshal(imgData, &img)
+			if err != nil {
+				logrus.Warning(err)
+			}
+		}
+		res["images"] = img
+		return res, err
 	}
 }

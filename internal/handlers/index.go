@@ -84,8 +84,9 @@ func parseArgs(ctx tele.Context) (string, string, string, int64, int64) {
 		tag = args[1]
 		q = args[2]
 	} else if len(args) > 1 {
-		tag = args[0]
-		q = args[1]
+		category = args[0]
+		tag = args[1]
+		q = ""
 	} else if len(args) == 1 {
 		q = args[0]
 	}
@@ -130,9 +131,11 @@ func (s *HandlerManagerImp) detailInfo(ctx tele.Context) error {
 			ps = append(ps, &tele.Photo{File: tele.FromReader(f)})
 		}
 	}
-	err = ctx.SendAlbum(ps)
-	if err != nil {
-		logrus.Warn(err)
+	if len(ps) > 0 {
+		err = ctx.SendAlbum(ps)
+		if err != nil {
+			logrus.Warn(err)
+		}
 	}
 
 	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), result, tele.ModeMarkdown, selector)
