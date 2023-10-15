@@ -11,6 +11,7 @@ import (
 )
 
 type DataService interface {
+	Get(code string) (map[string]interface{}, error)
 	List(q string, category string, language string, page int64, size int64, ordering string, data interface{}) (int64, error)
 	SearchTag(tag string, page int64, size int64, data interface{}) (total int64, err error)
 	GetNeedUpdateCode(days int, page int64, size int64) ([]string, error)
@@ -33,6 +34,14 @@ type DataInfoServiceImp struct {
 func (s *DataInfoServiceImp) Exists(code string) bool {
 	data, _ := s.repo.Get(code)
 	return data != nil
+}
+
+func (s *DataInfoServiceImp) Get(code string) (map[string]interface{}, error) {
+	res, err := s.repo.Get(code)
+	if err != nil {
+		return nil, err
+	}
+	return human.Decode(res)
 }
 
 func (s *DataInfoServiceImp) List(q string, category string, language string, page int64, size int64, ordering string, data interface{}) (int64, error) {

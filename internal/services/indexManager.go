@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -44,6 +43,10 @@ func (s *indexMangerServiceImp) IndexName(key string) string {
 }
 
 func (s *indexMangerServiceImp) addIndex(ctx context.Context, indexName string, language string, prefix string) error {
+	dw := config.C.Index.DescWeight
+	if dw != 0 && config.C.Index.Mode == "min" {
+		dw = 0 // 小内存模式，没有desc字段
+	}
 	config := indexsearch.IndexInfo{Name: 1, Category: 1, Code: 1, Type: 1, Desc: config.C.Index.DescWeight, NumberFields: config.C.Index.NumFilter}
 	index := indexsearch.NewRedisSearch(&s.Client, indexName, language, fmt.Sprintf("%s:%s", prefix, language), config)
 	s.indexes[indexName] = index
@@ -55,20 +58,31 @@ func (s *indexMangerServiceImp) AddItems(ctx context.Context, indexName string, 
 	if !ok {
 		return errors.New("index not found")
 	}
+	var info interface{}
 	for key, item := range data {
-		info := serializers.DataCacheLocation{}
-		err := copier.Copy(&info, item)
+		switch config.C.Index.Mode {
+		case "min":
+			info = &serializers.DataCacheLocationMin{}
+		case "max":
+			info = &serializers.DataCacheLocationMax{}
+		default:
+			info = &serializers.DataCacheLocation{}
+		}
+		err := copier.Copy(info, item)
 		if err != nil {
 			logrus.Warning(err)
 			continue
 		}
-		info.ParseLocation()
-		if len(item.Images) > 0 {
-			err = json.Unmarshal(item.Images, &info.Images)
-			if err != nil {
-				continue
-			}
+		switch config.C.Index.Mode {
+		case "min":
+			info.(*serializers.DataCacheLocationMin).ParseLocation(item.Location)
+		case "max":
+			info.(*serializers.DataCacheLocationMax).ParseLocation(item.Location)
+			info.(*serializers.DataCacheLocationMax).ParseImages(item.Images)
+		default:
+			info.(*serializers.DataCacheLocation).ParseLocation(item.Location)
 		}
+
 		err = index.AddItem(ctx, key, &info)
 		if err != nil {
 			logrus.Warning(err)
@@ -133,7 +147,7 @@ func (s *indexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 		n := int64(1)
 		for {
 			data := []*serializers.DataCache{}
-			_, err := s.dataService.List("", "", language, n, 1000, "", &data)
+			_, err := s.dataService.List("", "", language, n, 10000, "", &data)
 			if err != nil {
 				logrus.Warning(err)
 				break
@@ -165,16 +179,9 @@ func (s *indexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 
 // 初始化索引
 func (s *indexMangerServiceImp) InitIndex(ctx context.Context) error {
-	logrus.Debug("init index", config.C.Index.Languages)
-	for _, lang := range config.C.Index.Languages {
-		name := s.IndexName(lang)
-		err := s.addIndex(ctx, name, lang, config.C.Redis.KeyPrefix)
-		if err != nil {
-			logrus.Warning(err)
-			return err
-		}
-	}
-	return nil
+	logrus.Debug("init index", config.C.Index.Language)
+	name := s.IndexName(config.C.Index.Language)
+	return s.addIndex(ctx, name, config.C.Index.Language, config.C.Redis.KeyPrefix)
 }
 
 func (s *indexMangerServiceImp) DeleteIndex(ctx context.Context, lang string) error {
@@ -189,8 +196,6 @@ func (s *indexMangerServiceImp) DeleteIndex(ctx context.Context, lang string) er
 }
 
 func (s *indexMangerServiceImp) DeleteAllIndex(ctx context.Context) {
-	for _, lang := range config.C.Index.Languages {
-		s.DeleteIndex(ctx, lang)
-		logrus.Info("delete index :" + lang)
-	}
+	s.DeleteIndex(ctx, config.C.Index.Language)
+	logrus.Info("delete index: " + config.C.Index.Language)
 }

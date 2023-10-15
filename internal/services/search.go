@@ -32,8 +32,8 @@ func (s *searchServiceImp) QueryItems(ctx context.Context, category string, tag 
 		page = config.C.Index.MaxPage // 阻止过多翻页
 	}
 	var n int64
-	if config.C.Bot.UseCache {
-		n, items, err = s.QueryCacheItems(ctx, "chinese", category, tag, q, page, size)
+	if config.C.Bot.UseIndex {
+		n, items, err = s.QueryCacheItems(ctx, config.C.Index.Language, category, tag, q, page, size)
 	} else {
 		n, items, err = s.QueryDbItems(q, page, size)
 	}
@@ -81,8 +81,14 @@ func (s *searchServiceImp) QueryCacheItems(ctx context.Context, name string, cat
 }
 
 func (s *searchServiceImp) GetPrivate(ctx context.Context, code string) (string, error) {
-	index := s.IndexManager.IndexName("chinese")
-	res, err := s.IndexManager.GetItem(ctx, index, code)
+	var res map[string]interface{}
+	var err error
+	if config.C.Index.Mode == "max" {
+		index := s.IndexManager.IndexName(config.C.Index.Language)
+		res, err = s.IndexManager.GetItem(ctx, index, code)
+	} else {
+		res, err = s.dataService.Get(code)
+	}
 	if _, ok := res["private"]; err != nil && ok {
 		return "", err
 	}
@@ -90,6 +96,10 @@ func (s *searchServiceImp) GetPrivate(ctx context.Context, code string) (string,
 }
 
 func (s *searchServiceImp) GetDetail(ctx context.Context, code string) (map[string]interface{}, error) {
-	index := s.IndexManager.IndexName("chinese")
-	return s.IndexManager.GetItem(ctx, index, code)
+	if config.C.Index.Mode == "max" {
+		index := s.IndexManager.IndexName(config.C.Index.Language)
+		return s.IndexManager.GetItem(ctx, index, code)
+	} else {
+		return s.dataService.Get(code)
+	}
 }

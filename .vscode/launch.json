@@ -35,7 +35,8 @@
                 "grpc",
                 "-c",
                 "${workspaceRoot}/config/config.json"
-            ]
+            ],
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "Update Group",
@@ -49,7 +50,8 @@
                 "${workspaceRoot}/config/config.json",
                 "-u",
                 "100"
-            ]
+            ],
+            "envFile": "${workspaceRoot}/.env"
         },
         {
             "name": "init cache",
@@ -63,7 +65,8 @@
                 "${workspaceRoot}/config/config.json",
                 "-i",
                 "load"
-            ]
+            ],
+            "envFile": "${workspaceRoot}/.env"
         }
     ]
 }

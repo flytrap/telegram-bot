@@ -84,18 +84,19 @@ func RunIndex(ctx context.Context, opts ...Option) error {
 		return err
 	}
 
-	if o.Index == "delete" {
+	if o.Index == "delete" || o.Index == "load" {
 		injector.IndexManager.DeleteAllIndex(ctx)
-		return nil
+		if o.Index == "delete" {
+			return nil
+		}
 	}
 	injector.IndexManager.InitIndex(ctx)
 	if o.Index == "load" {
-		if len(config.C.Index.Languages) == 0 {
+		if len(config.C.Index.Language) == 0 {
 			return nil
 		}
-		indexName := injector.IndexManager.IndexName(config.C.Index.Languages[0]) // 只创建一个索引
-		injector.IndexManager.LoadData(ctx, indexName, "")
-		return nil
+		indexName := injector.IndexManager.IndexName(config.C.Index.Language) // 创建索引
+		return injector.IndexManager.LoadData(ctx, indexName, "")
 	}
 
 	if o.UpdateDb > 0 {

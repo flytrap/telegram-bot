@@ -31,13 +31,14 @@
   },
   "index": {
     "name": "test",
-    "languages": ["chinese"],
+    "language": "chinese",
+    "mode": "min",
     "page_size": 15,
     "max_page": 20,
     "order": "weight",
     "item_mode": "private",
     "desc_weight": 0,
-    "num_filter": ["type", "number", "time"]
+    "num_filter": ["number", "time"]
   },
   "proxy": {
     "protocal": "socks5",

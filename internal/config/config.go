@@ -71,13 +71,14 @@ type Bot struct {
 	ApiHash  string     `json:"api_hash" mapstructure:"api_hash"`
 	Token    string     `json:"token" mapstructure:"token"`         // 机器人token
 	Menus    [][]string `json:"menus" mapstructure:"menus"`         // 菜单配置
-	UseCache bool       `json:"use_cache" mapstructure:"use_cache"` // 使用缓存
+	UseIndex bool       `json:"use_index" mapstructure:"use_index"` // 使用索引，否则纯数据库查询
 	Manager  BotManager `json:"manager" mapstructure:"manager"`     // 管理信息
 }
 
 type Index struct {
 	Name       string   `json:"name" mapstructure:"name"`               // 索引名称前缀
-	Languages  []string `json:"languages" mapstructure:"languages"`     // 启动的语言
+	Language   string   `json:"language" mapstructure:"language"`       // 语言设定
+	Mode       string   `json:"mode" mapstructure:"mode"`               // 索引模式(min:小内存模式,normal,max:大内存模式)
 	PageSize   int64    `json:"page_size" mapstructure:"page_size"`     // 搜索单页大小
 	MaxPage    int64    `json:"max_page" mapstructure:"max_page"`       // 最大页码
 	ItemMode   string   `json:"item_mode" mapstructure:"item_mode"`     // 条目模式(tg_link:点击直接跳转tg链接,private:隐私模式，显示隐私信息)
