@@ -14,9 +14,9 @@ RUN apk add --no-cache tzdata && ln -sf /usr/share/zoneinfo/$TZ /etc/localtime &
 RUN apk add --no-cache \
     # Important: required for go-sqlite3
     gcc \
+    g++ \
     # Required for Alpine
-    musl-dev \
-    g++
+    musl-dev
 
 WORKDIR /build
 
@@ -30,6 +30,9 @@ FROM alpine
 WORKDIR /app
 # 需要先本地编译，手动 GOOS=linux GOARCH=amd64 go build -o grade
 # COPY config/config.json /app/config/config.json
+COPY --from=builder /usr/lib/libstdc++.so.6 /usr/lib/libstdc++.so.6
+COPY --from=builder /usr/lib/libgcc_s.so.1 /usr/lib/libgcc_s.so.1
+COPY --from=builder /go/pkg/mod/github.com/yanyiwu/gojieba@v1.3.0/dict/ /go/pkg/mod/github.com/yanyiwu/gojieba@v1.3.0/dict/
 COPY --from=builder /app/server /app/server
 
 # RUN echo -e http://mirrors.aliyun.com/alpine/v3.18/main/ > /etc/apk/repositories
