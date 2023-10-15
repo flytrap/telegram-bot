@@ -27,7 +27,7 @@
       ["学术", "咨询", "NSFW"]
     ],
     "manager": { "user_id": 0, "username": "Gs1234Bot", "delete_delay": 30 },
-    "use_cache": true
+    "use_index": true
   },
   "index": {
     "name": "test",
