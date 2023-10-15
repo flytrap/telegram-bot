@@ -55,7 +55,6 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 			if err != nil {
 				logrus.Fatalf("recv error:%v", err)
 			}
-			logrus.Printf("Recved :%v \n", req.Detail.Name)
 			info, err := human.Decode(req.Detail)
 			if err != nil {
 				logrus.Warning(err)

@@ -14,6 +14,8 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+const MAX_MESSAGE_LENGTH = 256 * 1024 * 1024
+
 func InitGrpcServer(ps pb.TgBotServiceServer, tgAdService pb.AdServiceServer, tgTagService pb.TagServiceServer, tgCategoryService pb.CategoryServiceServer, tgUserService pb.UserServiceServer) *GrpcServer {
 	return &GrpcServer{config: config.C.ServerConfig, tgBotService: ps, tgAdService: tgAdService, tgTagService: tgTagService, tgCategoryService: tgCategoryService, tgUserService: tgUserService}
 }
@@ -37,7 +39,7 @@ func (s *GrpcServer) Run() error {
 		return err
 	}
 
-	opts := []grpc.ServerOption{}
+	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(MAX_MESSAGE_LENGTH), grpc.MaxSendMsgSize(MAX_MESSAGE_LENGTH)}
 
 	if len(s.config.Cert) > 0 && len(s.config.Key) > 0 {
 		c, err := credentials.NewServerTLSFromFile(s.config.Cert, s.config.Key)

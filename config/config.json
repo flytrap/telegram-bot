@@ -43,7 +43,7 @@
     "port": 7890
   },
   "gorm": {
-    "debug": true,
+    "debug": false,
     "db_type": "sqlite",
     "db_name": "config/tg-xjj.sqlite3",
     "max_lifetime": 7200,

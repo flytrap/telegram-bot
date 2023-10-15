@@ -16,8 +16,7 @@ RUN apk add --no-cache \
     gcc \
     # Required for Alpine
     musl-dev \
-    g++ \
-    libc-dev
+    g++
 
 WORKDIR /build
 
