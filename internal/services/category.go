@@ -14,7 +14,8 @@ type CategoryService interface {
 	Create(name string, weight int32) error
 	Delete(ids []uint) (err error)
 
-	Load() error // 加载所有分类信息
+	Load() error               // 加载所有分类信息
+	GetAll() ([]string, error) // 加载所有分类信息
 	GetName(id uint) (string, error)
 	GetId(name string) (uint, error)
 	GetOrCreate(name string, weight int32) (*models.Category, error)
@@ -77,6 +78,14 @@ func (s *CategoryServiceImp) Load() error {
 		s.nameMap[item.Name] = item.ID
 	}
 	return nil
+}
+
+func (s *CategoryServiceImp) GetAll() ([]string, error) {
+	keys := make([]string, 0, len(s.nameMap))
+	for k := range s.nameMap {
+		keys = append(keys, k)
+	}
+	return keys, nil
 }
 
 func (s *CategoryServiceImp) GetName(id uint) (string, error) {

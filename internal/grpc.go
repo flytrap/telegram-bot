@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/flytrap/telegram-bot/internal/interceptor"
 	"github.com/flytrap/telegram-bot/pb/v1"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -39,7 +40,10 @@ func (s *GrpcServer) Run() error {
 		return err
 	}
 
-	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(MAX_MESSAGE_LENGTH), grpc.MaxSendMsgSize(MAX_MESSAGE_LENGTH)}
+	opts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(interceptor.AuthorizationServerInterceptor),
+		grpc.MaxRecvMsgSize(MAX_MESSAGE_LENGTH),
+		grpc.MaxSendMsgSize(MAX_MESSAGE_LENGTH)}
 
 	if len(s.config.Cert) > 0 && len(s.config.Key) > 0 {
 		c, err := credentials.NewServerTLSFromFile(s.config.Cert, s.config.Key)

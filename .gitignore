@@ -22,4 +22,6 @@ go.work
 *.sqlite3
 .DS_Store
 .env
+config/server.key
+config/server.pem
 __debug_bin*

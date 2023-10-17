@@ -15,9 +15,54 @@ import (
 
 type IndexCallbackFunc func(context.Context, string, int64, int64) ([]string, bool, error)
 
+// 通用搜索，默认行为
 func (s *HandlerManagerImp) IndexHandler(ctx tele.Context) error {
-	selector := &tele.ReplyMarkup{}
 	category, tag, q, page, size := parseArgs(ctx)
+	return s.indexHandler(ctx, category, tag, q, page, size)
+}
+
+// 通过分类和标签筛选
+func (s *HandlerManagerImp) CategoryTagHandler(ctx tele.Context) error {
+	category, tag, q, page, size := parseArgs(ctx)
+	if len(tag) == 0 && len(q) > 0 {
+		tag = q
+	}
+	return s.indexHandler(ctx, category, tag, "", page, size)
+}
+
+// 通过分类和搜索筛选
+func (s *HandlerManagerImp) CategoryQHandler(ctx tele.Context) error {
+	category, tag, q, page, size := parseArgs(ctx)
+	if len(q) == 0 && len(tag) > 0 {
+		q = tag
+	}
+	return s.indexHandler(ctx, category, "", q, page, size)
+}
+
+// 通过分类筛选
+func (s *HandlerManagerImp) CategoryHandler(ctx tele.Context) error {
+	category, _, q, page, size := parseArgs(ctx)
+	if len(category) == 0 && len(q) > 0 {
+		category = q
+	}
+	return s.indexHandler(ctx, category, "", "", page, size)
+}
+
+// 获取所有分类
+func (s *HandlerManagerImp) CategoryHelpHandler(ctx tele.Context) error {
+	cs, _ := s.cs.GetAll()
+	if len(cs) == 0 {
+		return nil
+	}
+	result := ""
+	for _, c := range cs {
+		result = fmt.Sprintf("%s/c %s\n", result, c)
+	}
+	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), result)
+}
+
+func (s *HandlerManagerImp) indexHandler(ctx tele.Context, category string, tag string, q string, page int64, size int64) error {
+	selector := &tele.ReplyMarkup{}
 	items, hasNext, err := s.ss.QueryItems(context.Background(), category, tag, q, page, size)
 	localize := i18n.NewLocalizer(s.bundle, "zh-CN")
 	keywordNotFound := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "keywordNotFound"})

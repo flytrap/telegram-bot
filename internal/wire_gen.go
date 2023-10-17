@@ -58,7 +58,7 @@ func BuildInjector() (*Injector, error) {
 	if err != nil {
 		return nil, err
 	}
-	handlerManager := handlers.NewHandlerManager(bot, store, searchService, groupSettingService, dataService, middleWareManager, bundle)
+	handlerManager := handlers.NewHandlerManager(bot, store, searchService, groupSettingService, dataService, categoryService, middleWareManager, bundle)
 	injector := &Injector{
 		Bot:            bot,
 		IndexManager:   indexMangerService,

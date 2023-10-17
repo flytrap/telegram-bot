@@ -4,8 +4,8 @@
     "grpc_protocol": "tcp",
     "grpc_port": "7011",
     "http_port": "7012",
-    "cert": "",
-    "key": "",
+    "cert": "config/server.pem",
+    "key": "config/server.key",
     "ca_name": "",
     "auth_key": "Bearer ",
     "tokens": ["test"]

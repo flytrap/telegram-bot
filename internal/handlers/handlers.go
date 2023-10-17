@@ -21,8 +21,8 @@ type HandlerManager interface {
 	UpdateGroupInfo(int64) error               // 更新群组数据
 }
 
-func NewHandlerManager(bot *tele.Bot, store *redis.Store, ss services.SearchService, gs services.GroupSettingService, dataService services.DataService, m middleware.MiddleWareManager, bundle *i18n.Bundle) HandlerManager {
-	return &HandlerManagerImp{Bot: bot, store: store, ss: ss, gs: gs, dataService: dataService, m: m, bundle: bundle}
+func NewHandlerManager(bot *tele.Bot, store *redis.Store, ss services.SearchService, gs services.GroupSettingService, dataService services.DataService, cs services.CategoryService, m middleware.MiddleWareManager, bundle *i18n.Bundle) HandlerManager {
+	return &HandlerManagerImp{Bot: bot, store: store, ss: ss, gs: gs, dataService: dataService, cs: cs, m: m, bundle: bundle}
 }
 
 type HandlerManagerImp struct {
@@ -30,6 +30,7 @@ type HandlerManagerImp struct {
 	store       *redis.Store
 	dataService services.DataService
 	ss          services.SearchService
+	cs          services.CategoryService
 	gs          services.GroupSettingService
 	m           middleware.MiddleWareManager
 	bundle      *i18n.Bundle
@@ -53,6 +54,10 @@ func (s *HandlerManagerImp) registerRoute(openIndex bool) error {
 	s.Bot.Handle("/pin", s.PinMessageHandler)
 	s.Bot.Handle("/start", s.StartHandler)
 	if openIndex {
+		s.Bot.Handle("/c", s.CategoryHandler)
+		s.Bot.Handle("/ch", s.CategoryHelpHandler)
+		s.Bot.Handle("/cc", s.CategoryTagHandler)
+		s.Bot.Handle("/cq", s.CategoryQHandler)
 		s.Bot.Handle(tele.OnText, s.IndexHandler)
 	}
 	return nil
