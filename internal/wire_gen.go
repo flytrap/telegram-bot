@@ -36,7 +36,7 @@ func BuildInjector() (*Injector, error) {
 	categoryService := services.NewCategoryService(categoryRepository)
 	dataService := services.NewDataService(dataInfoRepository, dataTagService, categoryService)
 	indexMangerService := services.NewIndexMangerService(coreClient, dataService, categoryService)
-	tgBotServiceServer := api.NewTgBotApi(dataService, categoryService)
+	tgBotServiceServer := api.NewTgBotApi(dataService, categoryService, indexMangerService)
 	adRepository := repositories.NewAdRepository(db)
 	adService := services.NewAdService(adRepository, categoryService)
 	adServiceServer := api.NewAdApi(adService)

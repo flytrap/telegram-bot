@@ -41,7 +41,9 @@ func (s *DataInfoServiceImp) Get(code string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return human.Decode(res)
+	result, err := human.Decode(res)
+	result["images"] = res.Images
+	return result, err
 }
 
 func (s *DataInfoServiceImp) List(q string, category string, language string, page int64, size int64, ordering string, data interface{}) (int64, error) {
@@ -123,6 +125,7 @@ func (s *DataInfoServiceImp) UpdateOrCreate(code string, params map[string]inter
 	params["images"] = images
 	if s.Exists(code) {
 		delete(params, "code")
+		delete(params, "tags")
 		return s.Update(code, params)
 	}
 	ts := []models.Tag{}
@@ -143,6 +146,5 @@ func (s *DataInfoServiceImp) UpdateOrCreate(code string, params map[string]inter
 		return err
 	}
 	data.Tags = ts
-	// data.Images = images
 	return s.repo.Create(&data)
 }

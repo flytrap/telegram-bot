@@ -18,6 +18,9 @@ func (j *JSON) Scan(value interface{}) error {
 	if !ok {
 		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 	}
+	if len(bytes) == 0 {
+		return nil
+	}
 
 	result := json.RawMessage{}
 	err := json.Unmarshal(bytes, &result)

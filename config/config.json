@@ -38,7 +38,13 @@
     "order": "weight",
     "item_mode": "private",
     "desc_weight": 0,
-    "num_filter": ["number", "time"]
+    "num_filter": ["number", "time"],
+    "commend": {
+      "category": "/category",
+      "category_help": "/category_help",
+      "category_search": "/search",
+      "category_tag": "/tag"
+    }
   },
   "proxy": {
     "protocal": "socks5",

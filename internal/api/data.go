@@ -5,19 +5,22 @@ import (
 	"io"
 	"sync"
 
+	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/flytrap/telegram-bot/internal/serializers"
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pb/v1"
 	"github.com/flytrap/telegram-bot/pkg/human"
 	"github.com/sirupsen/logrus"
 )
 
-func NewTgBotApi(dataService services.DataService, categoryService services.CategoryService) pb.TgBotServiceServer {
-	return &TgBotService{dataService: dataService, categoryService: categoryService}
+func NewTgBotApi(dataService services.DataService, categoryService services.CategoryService, indexService services.IndexMangerService) pb.TgBotServiceServer {
+	return &TgBotService{dataService: dataService, categoryService: categoryService, indexService: indexService}
 }
 
 type TgBotService struct {
 	dataService     services.DataService
 	categoryService services.CategoryService
+	indexService    services.IndexMangerService
 	pb.UnimplementedTgBotServiceServer
 }
 
@@ -63,7 +66,27 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 
 			info["tags"] = req.Tags
 			info["category"] = req.Category
-			msgCh <- s.dataService.UpdateOrCreate(req.Detail.Code, info)
+			err = s.dataService.UpdateOrCreate(req.Detail.Code, info)
+			if err != nil {
+				logrus.Warning(err)
+				msgCh <- err
+				continue
+			}
+			if config.C.Bot.UseIndex {
+				info["category"] = req.Category
+				info["code"] = req.Detail.Code
+				dc := serializers.DataCache{}
+				err = human.Encode(info, &dc)
+				if err != nil {
+					logrus.Warning(err)
+					msgCh <- err
+					continue
+				}
+				data := map[string]*serializers.DataCache{req.Detail.Code: &dc}
+				msgCh <- s.indexService.AddItems(context.Background(), s.indexService.IndexName(config.C.Index.Language), data)
+			} else {
+				msgCh <- nil
+			}
 		}
 		close(msgCh)
 	}()

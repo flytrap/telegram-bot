@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/flytrap/telegram-bot/internal/models"
 	"github.com/flytrap/telegram-bot/internal/serializers"
 	"github.com/flytrap/telegram-bot/pkg/human"
 	"github.com/flytrap/telegram-bot/pkg/indexsearch"
@@ -108,7 +109,7 @@ func (s *searchServiceImp) GetDetail(ctx context.Context, code string) (map[stri
 		}
 		img := []interface{}{}
 		if res["images"] != nil {
-			imgData := []byte(res["images"].(string))
+			imgData := res["images"].(models.JSON)
 			err := json.Unmarshal(imgData, &img)
 			if err != nil {
 				logrus.Warning(err)

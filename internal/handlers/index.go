@@ -56,7 +56,7 @@ func (s *HandlerManagerImp) CategoryHelpHandler(ctx tele.Context) error {
 	}
 	result := ""
 	for _, c := range cs {
-		result = fmt.Sprintf("%s/c %s\n", result, c)
+		result = fmt.Sprintf("%s%s %s\n", result, config.C.Index.Commend.CategoryTag, c)
 	}
 	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), result)
 }

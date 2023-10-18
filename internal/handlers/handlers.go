@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 
+	"github.com/flytrap/telegram-bot/internal/config"
 	"github.com/flytrap/telegram-bot/internal/middleware"
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pkg/redis"
@@ -54,10 +55,10 @@ func (s *HandlerManagerImp) registerRoute(openIndex bool) error {
 	s.Bot.Handle("/pin", s.PinMessageHandler)
 	s.Bot.Handle("/start", s.StartHandler)
 	if openIndex {
-		s.Bot.Handle("/c", s.CategoryHandler)
-		s.Bot.Handle("/ch", s.CategoryHelpHandler)
-		s.Bot.Handle("/cc", s.CategoryTagHandler)
-		s.Bot.Handle("/cq", s.CategoryQHandler)
+		s.Bot.Handle(config.C.Index.Commend.Category, s.CategoryHandler)
+		s.Bot.Handle(config.C.Index.Commend.CategoryHelp, s.CategoryHelpHandler)
+		s.Bot.Handle(config.C.Index.Commend.CategoryTag, s.CategoryTagHandler)
+		s.Bot.Handle(config.C.Index.Commend.CategorySearch, s.CategoryQHandler)
 		s.Bot.Handle(tele.OnText, s.IndexHandler)
 	}
 	return nil

@@ -76,15 +76,16 @@ type Bot struct {
 }
 
 type Index struct {
-	Name       string   `json:"name" mapstructure:"name"`               // 索引名称前缀
-	Language   string   `json:"language" mapstructure:"language"`       // 语言设定
-	Mode       string   `json:"mode" mapstructure:"mode"`               // 索引模式(min:小内存模式,normal,max:大内存模式)
-	PageSize   int64    `json:"page_size" mapstructure:"page_size"`     // 搜索单页大小
-	MaxPage    int64    `json:"max_page" mapstructure:"max_page"`       // 最大页码
-	ItemMode   string   `json:"item_mode" mapstructure:"item_mode"`     // 条目模式(tg_link:点击直接跳转tg链接,private:隐私模式，显示隐私信息)
-	Order      string   `json:"order" mapstructure:"order"`             // 排序
-	DescWeight float64  `json:"desc_weight" mapstructure:"desc_weight"` // 描述信息权重
-	NumFilter  []string `json:"num_filter" mapstructure:"num_filter"`   // 数组类型需要筛选                             // 数组类型筛选
+	Name       string     `json:"name" mapstructure:"name"`               // 索引名称前缀
+	Language   string     `json:"language" mapstructure:"language"`       // 语言设定
+	Mode       string     `json:"mode" mapstructure:"mode"`               // 索引模式(min:小内存模式,normal,max:大内存模式)
+	PageSize   int64      `json:"page_size" mapstructure:"page_size"`     // 搜索单页大小
+	MaxPage    int64      `json:"max_page" mapstructure:"max_page"`       // 最大页码
+	ItemMode   string     `json:"item_mode" mapstructure:"item_mode"`     // 条目模式(tg_link:点击直接跳转tg链接,private:隐私模式，显示隐私信息)
+	Order      string     `json:"order" mapstructure:"order"`             // 排序
+	DescWeight float64    `json:"desc_weight" mapstructure:"desc_weight"` // 描述信息权重
+	NumFilter  []string   `json:"num_filter" mapstructure:"num_filter"`   // 数组类型需要筛选                             // 数组类型筛选
+	Commend    BotCommand `json:"commend" mapstructure:"command"`         // 命令配置
 }
 
 type Proxy struct {
@@ -109,4 +110,12 @@ type BotManager struct {
 	UserId      int64  `json:"user_id" mapstructure:"user_id"`
 	Username    string `json:"username" mapstructure:"username"`
 	DeleteDelay int    `json:"delete_delay" mapstructure:"delete_delay"`
+}
+
+// 机器人命令
+type BotCommand struct {
+	Category       string `json:"category" mapstructure:"category"`
+	CategoryHelp   string `json:"category_help" mapstructure:"category_help"`
+	CategoryTag    string `json:"category_tag" mapstructure:"category_tag"`
+	CategorySearch string `json:"category_search" mapstructure:"category_search"`
 }
