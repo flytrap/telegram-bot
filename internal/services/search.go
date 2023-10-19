@@ -110,9 +110,11 @@ func (s *searchServiceImp) GetDetail(ctx context.Context, code string) (map[stri
 		img := []interface{}{}
 		if res["images"] != nil {
 			imgData := res["images"].(models.JSON)
-			err := json.Unmarshal(imgData, &img)
-			if err != nil {
-				logrus.Warning(err)
+			if len(imgData) > 0 {
+				err := json.Unmarshal(imgData, &img)
+				if err != nil {
+					logrus.Warning(err)
+				}
 			}
 		}
 		res["images"] = img

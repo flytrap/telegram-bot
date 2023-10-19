@@ -55,10 +55,10 @@ func (s *HandlerManagerImp) registerRoute(openIndex bool) error {
 	s.Bot.Handle("/pin", s.PinMessageHandler)
 	s.Bot.Handle("/start", s.StartHandler)
 	if openIndex {
-		s.Bot.Handle(config.C.Index.Commend.Category, s.CategoryHandler)
-		s.Bot.Handle(config.C.Index.Commend.CategoryHelp, s.CategoryHelpHandler)
-		s.Bot.Handle(config.C.Index.Commend.CategoryTag, s.CategoryTagHandler)
-		s.Bot.Handle(config.C.Index.Commend.CategorySearch, s.CategoryQHandler)
+		s.Bot.Handle(config.C.Index.Command.Category, s.CategoryHandler)
+		s.Bot.Handle(config.C.Index.Command.CategoryHelp, s.CategoryHelpHandler)
+		s.Bot.Handle(config.C.Index.Command.CategoryTag, s.CategoryTagHandler)
+		s.Bot.Handle(config.C.Index.Command.CategorySearch, s.CategoryQHandler)
 		s.Bot.Handle(tele.OnText, s.IndexHandler)
 	}
 	return nil

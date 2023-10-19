@@ -115,11 +115,10 @@ func (s *IndexSearchOnRedis) Delete(ctx context.Context) error {
 // 搜索
 func (s *IndexSearchOnRedis) Search(ctx context.Context, query SearchReq) (int64, []map[string]interface{}, error) {
 	q := filterQuery(query.Q)
-	if len(q) == 0 {
-		q = fmt.Sprintf("@tags:{%s}", query.Tag)
-	} else if len(query.Tag) > 0 {
+	if len(query.Tag) > 0 {
 		q = fmt.Sprintf("@tags:{%s} %s", query.Tag, q)
 	}
+
 	if len(query.Category) > 0 {
 		q = fmt.Sprintf("@category:{%s} %s", query.Category, q)
 	}

@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 
@@ -56,7 +57,7 @@ func (s *HandlerManagerImp) CategoryHelpHandler(ctx tele.Context) error {
 	}
 	result := ""
 	for _, c := range cs {
-		result = fmt.Sprintf("%s%s %s\n", result, config.C.Index.Commend.Category, c)
+		result = fmt.Sprintf("%s%s %s\n", result, config.C.Index.Command.Category, c)
 	}
 	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), result)
 }
@@ -183,7 +184,7 @@ func (s *HandlerManagerImp) detailInfo(ctx tele.Context) error {
 		}
 	}
 
-	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), result, tele.ModeMarkdown, selector)
+	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), html.UnescapeString(result), tele.ModeMarkdown, selector)
 }
 
 // 获取隐私信息

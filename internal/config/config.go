@@ -85,7 +85,7 @@ type Index struct {
 	Order      string     `json:"order" mapstructure:"order"`             // 排序
 	DescWeight float64    `json:"desc_weight" mapstructure:"desc_weight"` // 描述信息权重
 	NumFilter  []string   `json:"num_filter" mapstructure:"num_filter"`   // 数组类型需要筛选                             // 数组类型筛选
-	Commend    BotCommand `json:"commend" mapstructure:"command"`         // 命令配置
+	Command    BotCommand `json:"command" mapstructure:"command"`         // 命令配置
 }
 
 type Proxy struct {
