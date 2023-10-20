@@ -110,6 +110,10 @@ func (s *HandlerManagerImp) indexHandler(ctx tele.Context, category string, tag 
 func parseArgs(ctx tele.Context) (string, string, string, int64, int64) {
 	category, tag := "", "" // 分类
 	q := ctx.Message().Text // 关键词
+	if config.C.Index.DefaultQuery == "tag" {
+		tag = q
+		q = ""
+	}
 	page := int64(1)
 	args := ctx.Args()
 	cb := ctx.Callback()
@@ -134,7 +138,11 @@ func parseArgs(ctx tele.Context) (string, string, string, int64, int64) {
 		tag = args[1]
 		q = ""
 	} else if len(args) == 1 {
-		q = args[0]
+		if config.C.Index.DefaultQuery == "tag" {
+			tag = args[0]
+		} else {
+			q = args[0]
+		}
 	}
 	return category, tag, q, page, config.C.Index.PageSize
 }

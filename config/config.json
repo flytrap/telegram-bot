@@ -39,6 +39,7 @@
     "item_mode": "private",
     "desc_weight": 0,
     "num_filter": ["number", "time"],
+    "default_query": "q",
     "command": {
       "category": "/category",
       "category_help": "/category_help",
