@@ -93,31 +93,34 @@ func (s *HandlerManagerImp) welcomePayload(ctx tele.Context, gs *serializers.Gro
 		if len(gs.Welcome.Template) == 0 {
 			desc = localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "descTemplate", TemplateData: map[string]string{"Desc": chat.Description}})
 		}
-		data["desc"] = desc
+		data["Desc"] = desc
 	}
 	if gs.Welcome.Pinned && chat.PinnedMessage != nil && len(chat.PinnedMessage.Text) > 0 {
 		pinned := fmt.Sprintf("[%s](https://t.me/%s/%d)", chat.PinnedMessage.Text, chat.Username, chat.PinnedMessage.ID)
 		if len(gs.Welcome.Template) == 0 {
-			data["pinned"] = localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "pinnedTemplate", TemplateData: map[string]string{"Pinned": pinned}})
+			data["Pinned"] = localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "pinnedTemplate", TemplateData: map[string]string{"Pinned": pinned}})
 		}
 	}
-	tp := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "defaultTemplate"})
-	if len(gs.Welcome.Template) > 0 {
-		tp = gs.Welcome.Template
-	}
-	result, err := template.New("welcome").Parse(tp)
-	if err != nil {
-		return err
-	}
-	out := new(bytes.Buffer)
-	err = result.Execute(out, data) // 渲染模版
-	if err != nil {
-		return err
-	}
 	text := ""
-	if gs.Welcome.KillMe > 0 {
-		text = localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "killMsg", TemplateData: map[string]int{"Timeout": gs.Welcome.KillMe}})
-		return s.sendAutoDeleteMessage(ctx, time.Duration(gs.Welcome.KillMe)*time.Second, text+out.String(), menu)
+	if len(gs.Welcome.Template) == 0 {
+		text = localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "defaultTemplate", TemplateData: data})
+	} else {
+		tp := gs.Welcome.Template
+		result, err := template.New("welcome").Parse(tp)
+		if err != nil {
+			return err
+		}
+		out := new(bytes.Buffer)
+		err = result.Execute(out, data) // 渲染模版
+		if err != nil {
+			return err
+		}
+		text = out.String()
 	}
-	return ctx.Send(text+out.String(), menu)
+
+	if gs.Welcome.KillMe > 0 {
+		t := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "killMsg", TemplateData: map[string]int{"Timeout": gs.Welcome.KillMe}})
+		return s.sendAutoDeleteMessage(ctx, time.Duration(gs.Welcome.KillMe)*time.Second, t+text, menu)
+	}
+	return ctx.Send(text, menu)
 }
