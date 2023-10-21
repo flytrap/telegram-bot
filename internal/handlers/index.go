@@ -42,11 +42,12 @@ func (s *HandlerManagerImp) CategoryQHandler(ctx tele.Context) error {
 
 // 通过分类筛选
 func (s *HandlerManagerImp) CategoryHandler(ctx tele.Context) error {
-	category, _, q, page, size := parseArgs(ctx)
+	category, tag, q, page, size := parseArgs(ctx)
 	if len(category) == 0 && len(q) > 0 {
 		category = q
 	}
-	return s.indexHandler(ctx, category, "", "", page, size)
+
+	return s.indexHandler(ctx, category, "", tag, page, size)
 }
 
 // 获取所有分类
