@@ -19,7 +19,7 @@ jobs:
         run: docker login --username=${{ secrets.DOCKER_USERNAME }} --password-stdi ${{ secrets.DOCKER_PASSWORD }}
       - name: build and push
         id: docker_build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           # 是否 docker push
           push: true
