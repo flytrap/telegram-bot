@@ -67,12 +67,13 @@ type Redis struct {
 }
 
 type Bot struct {
-	AppId    string     `json:"app_id" mapstructure:"app_id"`
-	ApiHash  string     `json:"api_hash" mapstructure:"api_hash"`
-	Token    string     `json:"token" mapstructure:"token"`         // 机器人token
-	Menus    [][]string `json:"menus" mapstructure:"menus"`         // 菜单配置
-	UseIndex bool       `json:"use_index" mapstructure:"use_index"` // 使用索引，否则纯数据库查询
-	Manager  BotManager `json:"manager" mapstructure:"manager"`     // 管理信息
+	AppId       string     `json:"app_id" mapstructure:"app_id"`
+	ApiHash     string     `json:"api_hash" mapstructure:"api_hash"`
+	Token       string     `json:"token" mapstructure:"token"`               // 机器人token
+	Menus       [][]string `json:"menus" mapstructure:"menus"`               // 菜单配置
+	UseIndex    bool       `json:"use_index" mapstructure:"use_index"`       // 使用索引，否则纯数据库查询
+	OpenManager bool       `json:"open_manager" mapstructure:"open_manager"` // 开启管理功能
+	Manager     BotManager `json:"manager" mapstructure:"manager"`           // 管理信息
 }
 
 type Index struct {

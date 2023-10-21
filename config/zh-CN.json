@@ -1,4 +1,5 @@
 {
+  "startTip": "本机器人要加入群中才能工作 \nTelegram语言包设置： \n【 [简体中文](tg://setlanguage?lang=zhcncc) | [繁體中文](tg://setlanguage?lang=zh-hant-beta) | [English](tg://setlanguage?lang=en) 】 \n",
   "admin": {
     "joinTip": "请将本机器人加入您的群中再使用此命令",
     "noPermissionTio": "只有本群管理才可以使用此命令",

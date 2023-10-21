@@ -46,14 +46,14 @@ func (s *HandlerManagerImp) Start(ctx context.Context, openIndex bool) {
 }
 
 func (s *HandlerManagerImp) registerRoute(openIndex bool) error {
-	s.Bot.Handle(tele.OnAddedToGroup, s.InitHandler)
-	s.Bot.Handle(tele.OnUserJoined, s.JoinInHandler)
-	s.Bot.Handle(tele.OnUserLeft, s.AutoDeleteInHandler)
-	s.Bot.Handle("/admin", s.AdminHandler)
-	s.Bot.Handle("/help", s.HelpHandler)
-	s.Bot.Handle("/del", s.DelMessageHandler)
-	s.Bot.Handle("/pin", s.PinMessageHandler)
 	s.Bot.Handle("/start", s.StartHandler)
+	if config.C.Bot.OpenManager {
+		s.Bot.Handle(tele.OnAddedToGroup, s.InitHandler)
+		s.Bot.Handle(tele.OnUserJoined, s.JoinInHandler)
+		s.Bot.Handle(tele.OnUserLeft, s.AutoDeleteInHandler)
+		s.Bot.Handle("/admin", s.AdminHandler)
+		s.Bot.Handle("/help", s.HelpHandler)
+	}
 	if openIndex {
 		s.Bot.Handle(config.C.Index.Command.Category, s.CategoryHandler)
 		s.Bot.Handle(config.C.Index.Command.CategoryHelp, s.CategoryHelpHandler)
