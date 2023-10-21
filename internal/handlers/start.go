@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/flytrap/telegram-bot/internal/config"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -19,10 +20,10 @@ func (s *HandlerManagerImp) StartHandler(ctx tele.Context) error {
 		initMenu()
 	}
 	selector := &tele.ReplyMarkup{}
+	localize := i18n.NewLocalizer(s.bundle, "zh-CN")
+	text := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "startTip"})
 
-	text := "本机器人要加入群中才能工作 \n"
-	text += "Telegram语言包设置： \n【 [简体中文](tg://setlanguage?lang=zhcncc) | [繁體中文](tg://setlanguage?lang=zh-hant-beta) | [English](tg://setlanguage?lang=en) 】 \n"
-	selector.URL("添加本机器人到群中", fmt.Sprintf("https://t.me/%s", config.C.Bot.Manager.Username))
+	selector.URL(config.C.Bot.Manager.Username, fmt.Sprintf("https://t.me/%s", config.C.Bot.Manager.Username))
 	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), text, selector, menu)
 }
 

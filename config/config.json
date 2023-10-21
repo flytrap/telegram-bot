@@ -26,6 +26,7 @@
       ["游戏", "影音", "AGC"],
       ["学术", "咨询", "NSFW"]
     ],
+    "open_manager": false,
     "manager": { "user_id": 0, "username": "Gs1234Bot", "delete_delay": 30 },
     "use_index": true
   },
