@@ -16,7 +16,7 @@ jobs:
       - name: Generate App Version
         run: echo APP_VERSION=`git describe --tags --always` >> $GITHUB_ENV
       - name: Login to Registry
-        run: docker login --username=${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
+        run: docker login --username=${{ secrets.DOCKER_USERNAME }} --password-stdi ${{ secrets.DOCKER_PASSWORD }}
       - name: build and push
         id: docker_build
         uses: docker/build-push-action@v3
@@ -24,11 +24,13 @@ jobs:
           # 是否 docker push
           push: true
           platforms: |
-            linux/386
+            darwin/amd64
+            windows/amd64
+            darwin/arm64
             linux/amd64
             linux/arm/v6
             linux/arm/v7
-            linux/arm64/v8
+            linux/arm64
           # docker build arg, 注入 APP_NAME/APP_VERSION
           build-args: |
             APP_NAME=${{ env.APP_NAME }}
