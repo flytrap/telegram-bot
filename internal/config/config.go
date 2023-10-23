@@ -88,6 +88,7 @@ type Index struct {
 	NumFilter    []string   `json:"num_filter" mapstructure:"num_filter"`       // 数组类型需要筛选                             // 数组类型筛选
 	DefaultQuery string     `json:"default_query" mapstructure:"default_query"` // 默认查询方式(q:默认模糊搜索,tag:标签匹配)
 	Command      BotCommand `json:"command" mapstructure:"command"`             // 命令配置
+	Recommend    Recommend  `json:"recommend" mapstructure:"recommend"`         // 推荐配置
 }
 
 type Proxy struct {
@@ -120,4 +121,11 @@ type BotCommand struct {
 	CategoryHelp   string `json:"category_help" mapstructure:"category_help"`
 	CategoryTag    string `json:"category_tag" mapstructure:"category_tag"`
 	CategorySearch string `json:"category_search" mapstructure:"category_search"`
+}
+
+type Recommend struct {
+	Channel  string   `json:"channel" mapstructure:"channel"`
+	Category string   `json:"category" mapstructure:"category"`
+	Tags     []string `json:"tags" mapstructure:"tags"`
+	Q        string   `json:"q" mapstructure:"q"`
 }

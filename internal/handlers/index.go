@@ -167,15 +167,34 @@ func (s *HandlerManagerImp) detailInfo(ctx tele.Context) error {
 	if len(args) != 3 {
 		return ctx.Reply(keywordNotFound)
 	}
-	tag, q, code := args[0], args[1], args[2]
-	item, err := s.ss.GetDetail(context.Background(), code)
+	code := args[len(args)-1]
+	selector := &tele.ReplyMarkup{}
+	result, ps, err := s.getDetailInfo(code, selector)
 	if err != nil {
 		return ctx.Reply(keywordNotFound)
 	}
-	selector := &tele.ReplyMarkup{}
+
+	if len(*ps) > 0 {
+		err = ctx.SendAlbum(*ps)
+		if err != nil {
+			logrus.Warn(err)
+		}
+	}
+
+	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), html.UnescapeString(result), tele.ModeMarkdown, selector)
+}
+
+// 整合详情显示
+func (s *HandlerManagerImp) getDetailInfo(code string, selector *tele.ReplyMarkup) (string, *tele.Album, error) {
+	item, err := s.ss.GetDetail(context.Background(), code)
+	if err != nil {
+		return "", nil, err
+	}
+
+	localize := i18n.NewLocalizer(s.bundle, "zh-CN")
 	viewPrivate := localize.MustLocalize(&i18n.LocalizeConfig{MessageID: "viewPrivate"})
-	btnDetail := selector.Data(viewPrivate, "view", tag, q, code)
-	ctx.Bot().Handle(&btnDetail, s.PrivateInfo)
+	btnDetail := selector.Data(viewPrivate, "view", code)
+	s.Bot.Handle(&btnDetail, s.PrivateInfo)
 	selector.Inline(selector.Row(btnDetail))
 	result := human.DetailItemInfo(item["name"].(string), item["desc"].(string), item["extend"].(string), item["location"].(string), "")
 
@@ -186,14 +205,7 @@ func (s *HandlerManagerImp) detailInfo(ctx tele.Context) error {
 			ps = append(ps, &tele.Photo{File: tele.FromReader(f)})
 		}
 	}
-	if len(ps) > 0 {
-		err = ctx.SendAlbum(ps)
-		if err != nil {
-			logrus.Warn(err)
-		}
-	}
-
-	return s.sendAutoDeleteMessage(ctx, AfterDelTime(), html.UnescapeString(result), tele.ModeMarkdown, selector)
+	return result, &ps, nil
 }
 
 // 获取隐私信息

@@ -42,6 +42,7 @@ func (s *HandlerManagerImp) Start(ctx context.Context, openIndex bool) {
 	s.Bot.Use(s.m.Logger())
 	logrus.Info("启动bot")
 	s.registerRoute(openIndex)
+	go s.SendDataToChannel()
 	s.Bot.Start()
 }
 
