@@ -145,9 +145,15 @@ func (s *indexMangerServiceImp) LoadData(ctx context.Context, indexName string, 
 	go func() {
 		defer wg.Done()
 		n := int64(1)
+		size := int64(5000)
+		if config.C.Index.Mode == "min" {
+			size = 1000
+		} else if config.C.Index.Mode == "max" {
+			size = 10000
+		}
 		for {
 			data := []*serializers.DataCache{}
-			_, err := s.dataService.List("", "", language, n, 10000, "", &data)
+			_, err := s.dataService.List("", "", language, n, size, "", &data)
 			if err != nil {
 				logrus.Warning(err)
 				break
