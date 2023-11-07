@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/flytrap/telegram-bot/internal/config"
 	"github.com/sirupsen/logrus"
 	tele "gopkg.in/telebot.v3"
 )
@@ -25,6 +26,9 @@ func (s *middleWareManagerImp) LinkFilter() tele.MiddlewareFunc {
 				if i >= 3 {
 					c.Bot().BanSenderChat(c.Chat(), c.Recipient())
 				}
+			}
+			if config.C.Index.Recommend.Channel == user.Username {
+				return nil
 			}
 			return next(c)
 		}
