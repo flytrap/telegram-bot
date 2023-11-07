@@ -27,7 +27,7 @@ func (s *middleWareManagerImp) LinkFilter() tele.MiddlewareFunc {
 					c.Bot().BanSenderChat(c.Chat(), c.Recipient())
 				}
 			}
-			if config.C.Index.Recommend.Channel == user.Username {
+			if config.C.Index.Recommend.Channel == c.Message().OriginalChat.Username {
 				return nil
 			}
 			return next(c)
