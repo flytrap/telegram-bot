@@ -5,7 +5,9 @@ package tg.v1;
 
 service TgBotService {
     rpc ImportData(stream DataInfo) returns (stream RetInfo){}  // 导入组数据
-    rpc SearchData(DataSearchRequest) returns (QueryDataResp){}
+    rpc Search(DataSearchRequest) returns (QueryDataResp){}  // 通过索引搜素
+    rpc DetailData(DataDetailRequest) returns (DataItem){}   // 获取详情
+    rpc ListData(DataListRequest) returns (QueryDataResp){}  // 通过数据库查询
     rpc UpdateData(DataItem) returns (RetInfo) {}
     rpc DeleteData(DeleteCodes) returns (RetInfo) {}
 }
@@ -92,7 +94,7 @@ message BotUser {
     string lang = 8;
 }
 
-message DataSearchRequest {
+message DataListRequest {
     string q = 1;
     string category = 2;
     int32 type = 3;
@@ -101,6 +103,19 @@ message DataSearchRequest {
     int64 page = 6;
     int64 size = 7;
     string order =8;
+}
+
+message DataSearchRequest {
+    string q = 1;
+    string category = 2;
+    string tag = 3;
+    int64 page = 4;
+    int64 size = 5;
+    string order = 6;
+}
+
+message DataDetailRequest {
+    string code = 1;
 }
 
 message AdFilter {

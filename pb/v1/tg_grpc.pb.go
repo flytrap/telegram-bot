@@ -20,7 +20,9 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	TgBotService_ImportData_FullMethodName = "/tg.v1.TgBotService/ImportData"
-	TgBotService_SearchData_FullMethodName = "/tg.v1.TgBotService/SearchData"
+	TgBotService_Search_FullMethodName     = "/tg.v1.TgBotService/Search"
+	TgBotService_DetailData_FullMethodName = "/tg.v1.TgBotService/DetailData"
+	TgBotService_ListData_FullMethodName   = "/tg.v1.TgBotService/ListData"
 	TgBotService_UpdateData_FullMethodName = "/tg.v1.TgBotService/UpdateData"
 	TgBotService_DeleteData_FullMethodName = "/tg.v1.TgBotService/DeleteData"
 )
@@ -30,7 +32,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TgBotServiceClient interface {
 	ImportData(ctx context.Context, opts ...grpc.CallOption) (TgBotService_ImportDataClient, error)
-	SearchData(ctx context.Context, in *DataSearchRequest, opts ...grpc.CallOption) (*QueryDataResp, error)
+	Search(ctx context.Context, in *DataSearchRequest, opts ...grpc.CallOption) (*QueryDataResp, error)
+	DetailData(ctx context.Context, in *DataDetailRequest, opts ...grpc.CallOption) (*DataItem, error)
+	ListData(ctx context.Context, in *DataListRequest, opts ...grpc.CallOption) (*QueryDataResp, error)
 	UpdateData(ctx context.Context, in *DataItem, opts ...grpc.CallOption) (*RetInfo, error)
 	DeleteData(ctx context.Context, in *DeleteCodes, opts ...grpc.CallOption) (*RetInfo, error)
 }
@@ -74,9 +78,27 @@ func (x *tgBotServiceImportDataClient) Recv() (*RetInfo, error) {
 	return m, nil
 }
 
-func (c *tgBotServiceClient) SearchData(ctx context.Context, in *DataSearchRequest, opts ...grpc.CallOption) (*QueryDataResp, error) {
+func (c *tgBotServiceClient) Search(ctx context.Context, in *DataSearchRequest, opts ...grpc.CallOption) (*QueryDataResp, error) {
 	out := new(QueryDataResp)
-	err := c.cc.Invoke(ctx, TgBotService_SearchData_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, TgBotService_Search_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tgBotServiceClient) DetailData(ctx context.Context, in *DataDetailRequest, opts ...grpc.CallOption) (*DataItem, error) {
+	out := new(DataItem)
+	err := c.cc.Invoke(ctx, TgBotService_DetailData_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tgBotServiceClient) ListData(ctx context.Context, in *DataListRequest, opts ...grpc.CallOption) (*QueryDataResp, error) {
+	out := new(QueryDataResp)
+	err := c.cc.Invoke(ctx, TgBotService_ListData_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +128,9 @@ func (c *tgBotServiceClient) DeleteData(ctx context.Context, in *DeleteCodes, op
 // for forward compatibility
 type TgBotServiceServer interface {
 	ImportData(TgBotService_ImportDataServer) error
-	SearchData(context.Context, *DataSearchRequest) (*QueryDataResp, error)
+	Search(context.Context, *DataSearchRequest) (*QueryDataResp, error)
+	DetailData(context.Context, *DataDetailRequest) (*DataItem, error)
+	ListData(context.Context, *DataListRequest) (*QueryDataResp, error)
 	UpdateData(context.Context, *DataItem) (*RetInfo, error)
 	DeleteData(context.Context, *DeleteCodes) (*RetInfo, error)
 	mustEmbedUnimplementedTgBotServiceServer()
@@ -119,8 +143,14 @@ type UnimplementedTgBotServiceServer struct {
 func (UnimplementedTgBotServiceServer) ImportData(TgBotService_ImportDataServer) error {
 	return status.Errorf(codes.Unimplemented, "method ImportData not implemented")
 }
-func (UnimplementedTgBotServiceServer) SearchData(context.Context, *DataSearchRequest) (*QueryDataResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchData not implemented")
+func (UnimplementedTgBotServiceServer) Search(context.Context, *DataSearchRequest) (*QueryDataResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Search not implemented")
+}
+func (UnimplementedTgBotServiceServer) DetailData(context.Context, *DataDetailRequest) (*DataItem, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DetailData not implemented")
+}
+func (UnimplementedTgBotServiceServer) ListData(context.Context, *DataListRequest) (*QueryDataResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListData not implemented")
 }
 func (UnimplementedTgBotServiceServer) UpdateData(context.Context, *DataItem) (*RetInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateData not implemented")
@@ -167,20 +197,56 @@ func (x *tgBotServiceImportDataServer) Recv() (*DataInfo, error) {
 	return m, nil
 }
 
-func _TgBotService_SearchData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TgBotService_Search_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DataSearchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TgBotServiceServer).SearchData(ctx, in)
+		return srv.(TgBotServiceServer).Search(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TgBotService_SearchData_FullMethodName,
+		FullMethod: TgBotService_Search_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TgBotServiceServer).SearchData(ctx, req.(*DataSearchRequest))
+		return srv.(TgBotServiceServer).Search(ctx, req.(*DataSearchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TgBotService_DetailData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DataDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TgBotServiceServer).DetailData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TgBotService_DetailData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TgBotServiceServer).DetailData(ctx, req.(*DataDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TgBotService_ListData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DataListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TgBotServiceServer).ListData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TgBotService_ListData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TgBotServiceServer).ListData(ctx, req.(*DataListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -229,8 +295,16 @@ var TgBotService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TgBotServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SearchData",
-			Handler:    _TgBotService_SearchData_Handler,
+			MethodName: "Search",
+			Handler:    _TgBotService_Search_Handler,
+		},
+		{
+			MethodName: "DetailData",
+			Handler:    _TgBotService_DetailData_Handler,
+		},
+		{
+			MethodName: "ListData",
+			Handler:    _TgBotService_ListData_Handler,
 		},
 		{
 			MethodName: "UpdateData",

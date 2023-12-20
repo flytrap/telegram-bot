@@ -10,6 +10,7 @@ import (
 	"github.com/flytrap/telegram-bot/internal/services"
 	"github.com/flytrap/telegram-bot/pb/v1"
 	"github.com/flytrap/telegram-bot/pkg/human"
+	"github.com/flytrap/telegram-bot/pkg/indexsearch"
 	"github.com/sirupsen/logrus"
 )
 
@@ -94,7 +95,32 @@ func (s *TgBotService) ImportData(stream pb.TgBotService_ImportDataServer) error
 	return nil
 }
 
-func (s *TgBotService) SearchData(ctx context.Context, req *pb.DataSearchRequest) (*pb.QueryDataResp, error) {
+// 通过索引搜素
+func (s *TgBotService) Search(ctx context.Context, req *pb.DataSearchRequest) (*pb.QueryDataResp, error) {
+	n, res, err := s.indexService.Query(ctx, "", indexsearch.SearchReq{Category: req.Category, Q: req.Q, Page: req.Page, Size: req.Size, Order: req.Order, Tag: req.Tag})
+	if err != nil {
+		return &pb.QueryDataResp{Ret: &pb.RetInfo{Status: false, Msg: err.Error()}}, nil
+	}
+	data := []*pb.DataInfo{}
+	for _, item := range res {
+		info := pb.DataInfo{}
+		err := human.Encode(item, &info)
+		if err != nil {
+			logrus.Warning(err)
+			continue
+		}
+		data = append(data, &info)
+	}
+
+	return &pb.QueryDataResp{Ret: &pb.RetInfo{Status: true}, Data: data, Total: n}, nil
+}
+
+func (s *TgBotService) DetailData(ctx context.Context, req *pb.DataDetailRequest) (*pb.DataItem, error) {
+	return nil, nil
+}
+
+// 数据库查询
+func (s *TgBotService) ListData(ctx context.Context, req *pb.DataListRequest) (*pb.QueryDataResp, error) {
 	items := []*pb.DataItem{}
 	n, err := s.dataService.List(req.Q, req.Category, req.Lang, req.Page, req.Size, req.Order, &items)
 	if err != nil {
